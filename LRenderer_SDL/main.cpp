@@ -2,23 +2,11 @@
 #include <SDL_main.h>
 #include <vector>
 #include "main.h"
+#include "Framebuffer.h"
 
 // 窗口宽高
 const int WIDTH = 800;
 const int HEIGHT = 600;
-
-// 初始化帧缓冲
-std::vector<uint32_t> frameBuffer(WIDTH* HEIGHT, 0);
-
-void clearFramebuffer(uint32_t color) {
-    std::fill(frameBuffer.begin(), frameBuffer.end(), color);
-}
-
-void putPixel(int x, int y, uint32_t color) {
-    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-        frameBuffer[y * WIDTH + x] = color;
-    }
-}
 
 int main(int argc, char* argv[]) {
     // 告诉 SDL 我们将自己处理 main 函数
@@ -36,6 +24,8 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
+    Framebuffer framebuffer(WIDTH, HEIGHT);
+
     while (running) {
         // 事件处理
         while (SDL_PollEvent(&event)) {
@@ -45,12 +35,12 @@ int main(int argc, char* argv[]) {
         }
 
         // 清屏
-        clearFramebuffer(0xFF000000); // 黑色背景
+        framebuffer.clear(0xFF000000); // 黑色背景
 
-        DrawFramebuffer();
+        DrawFramebuffer(framebuffer);
 
         // 将帧缓冲绘制到窗口
-        SDL_UpdateTexture(texture, nullptr, frameBuffer.data(), WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(texture, nullptr, framebuffer.data(), WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
@@ -65,10 +55,10 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void DrawFramebuffer()
+void DrawFramebuffer(Framebuffer &framebuffer)
 {
     // 绘制简单像素点
     for (int x = 100; x < 200; ++x) {
-        putPixel(x, 150, 0xFFFF0000); // 红色直线
+        framebuffer.putPixel(x, 150, 0xFFFF0000); // 红色直线
     }
 }

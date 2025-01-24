@@ -1,3 +1,4 @@
 #pragma once
+#include "Framebuffer.h"
 
-void DrawFramebuffer();
+void DrawFramebuffer(Framebuffer& framebuffer);
