@@ -8,6 +8,28 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+
+void clearFramebuffer(uint32_t color) {
+    std::fill(frameBuffer.begin(), frameBuffer.end(), color);
+}
+
+void putPixel(int x, int y, uint32_t color) {
+    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
+        frameBuffer[y * WIDTH + x] = color;
+    }
+}
+
+
+void clearFramebuffer(uint32_t color) {
+    std::fill(frameBuffer.begin(), frameBuffer.end(), color);
+}
+
+void putPixel(int x, int y, uint32_t color) {
+    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
+        frameBuffer[y * WIDTH + x] = color;
+    }
+}
+
 int main(int argc, char* argv[]) {
     // 告诉 SDL 我们将自己处理 main 函数
     SDL_SetMainReady();
