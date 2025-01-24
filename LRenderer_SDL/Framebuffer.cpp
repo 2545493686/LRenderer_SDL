@@ -1,4 +1,4 @@
-#include "Framebuffer.h"
+﻿#include "Framebuffer.h"
 
 Framebuffer::Framebuffer(int width, int height)
 {
@@ -19,6 +19,36 @@ void Framebuffer::putPixel(int x, int y, uint32_t color)
 		frameBuffer[y * width + x] = color;
 	}
 }
+
+// DDA算法绘制直线 TODO：Bresenham
+void Framebuffer::drawLine(int x0, int y0, int x1, int y1, uint32_t color)
+{
+	float k = (y1 - y0) / (float)(x1 - x0);
+	if (k >= -1 && k <= 1) {
+		if (x0 > x1) {
+			std::swap(x0, x1);
+			std::swap(y0, y1);
+		}
+		float y = y0;
+		for (int x = x0; x <= x1; ++x) {
+			putPixel(x, y, color);
+			y += k;
+		}
+	}
+	else {
+		if (y0 > y1) {
+			std::swap(x0, x1);
+			std::swap(y0, y1);
+		}
+		k = 1 / k;
+		float x = x0;
+		for (int y = y0; y <= y1; ++y) {
+			x += k;
+			putPixel(x, y, color);
+		}
+	}
+}
+
 
 
 

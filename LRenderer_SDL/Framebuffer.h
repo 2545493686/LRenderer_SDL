@@ -7,8 +7,9 @@ public:
 
     void clear(uint32_t color);
     void putPixel(int x, int y, uint32_t color);
-    uint32_t* data() { return frameBuffer.data(); }
+    void drawLine(int x0, int y0, int x1, int y1, uint32_t color);
 
+    uint32_t* data() { return frameBuffer.data(); }
     int getWidth() const { return width; }
     int getHeight() const { return height; }
 

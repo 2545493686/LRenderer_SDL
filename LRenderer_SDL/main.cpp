@@ -3,6 +3,7 @@
 #include <vector>
 #include "main.h"
 #include "Framebuffer.h"
+#include "Color.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -58,7 +59,11 @@ int main(int argc, char* argv[]) {
 void DrawFramebuffer(Framebuffer &framebuffer)
 {
     // 绘制简单像素点
-    for (int x = 100; x < 200; ++x) {
-        framebuffer.putPixel(x, 150, 0xFFFF0000); // 红色直线
+    for (int x = 100; x < 600; ++x) {
+        framebuffer.putPixel(x, 150, Color::Red); // 红色直线
     }
+
+    framebuffer.drawLine(0, 0, 100, 200, Color::Green);
+    framebuffer.drawLine(0, 0, framebuffer.getWidth() / 2, 
+        framebuffer.getHeight() / 2, Color::Yellow);
 }
