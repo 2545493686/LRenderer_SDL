@@ -43,8 +43,8 @@ void Framebuffer::drawLine(int x0, int y0, int x1, int y1, uint32_t color)
 		k = 1 / k;
 		float x = x0;
 		for (int y = y0; y <= y1; ++y) {
-			x += k;
 			putPixel(x, y, color);
+			x += k;
 		}
 	}
 }
