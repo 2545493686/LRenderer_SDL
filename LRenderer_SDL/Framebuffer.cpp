@@ -49,7 +49,15 @@ void Framebuffer::drawLine(int x0, int y0, int x1, int y1, uint32_t color)
 	}
 }
 
+void Framebuffer::drawLine(Eigen::Vector2f p0, Eigen::Vector2f p1, uint32_t color)
+{
+	drawLine(p0.x(), p0.y(), p1.x(), p1.y(), color);
+}
 
+void Framebuffer::drawMesh(Mesh mesh)
+{
+	
+}
 
 
 
