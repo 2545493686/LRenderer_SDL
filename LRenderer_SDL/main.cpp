@@ -98,17 +98,5 @@ void DrawFramebuffer(Framebuffer &framebuffer)
 	const aiMesh* aiMesh = scene->mMeshes[0];
 	Mesh mesh = MeshConverter::Covert(aiMesh);
     
-    // 屏幕中心点
-	Eigen::Vector3f center(framebuffer.getWidth() / 2, 0, framebuffer.getHeight() / 2);
-    
-    Eigen::Vector3f rightDown(framebuffer.getWidth(), 0, framebuffer.getHeight());
-
-    // 打印mesh顶点数量
-    for (size_t i = 1; i < mesh.edgesCount; i++)
-    {
-		Eigen::Vector3f p0 = rightDown - mesh.vertices[mesh.edges[i - 1]] * 250 - center;
-        Eigen::Vector3f p1 = rightDown - mesh.vertices[mesh.edges[i]] * 250 - center;
-
-		framebuffer.drawLine(p0.x(), p0.z(), p1.x(), p1.z(), Color::White);
-    }
+	framebuffer.drawMesh(mesh);
 }

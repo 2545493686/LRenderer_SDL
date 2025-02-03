@@ -54,9 +54,21 @@ void Framebuffer::drawLine(Eigen::Vector2f p0, Eigen::Vector2f p1, uint32_t colo
 	drawLine(p0.x(), p0.y(), p1.x(), p1.y(), color);
 }
 
-void Framebuffer::drawMesh(Mesh mesh)
+void Framebuffer::drawMesh(Mesh &mesh)
 {
-	
+	// 屏幕中心点
+	Eigen::Vector3f center(width / 2, 0, height / 2);
+
+	Eigen::Vector3f rightDown(width, 0, height);
+
+	// 打印mesh顶点数量
+	for (size_t i = 1; i < mesh.edgesCount; i++)
+	{
+		Eigen::Vector3f p0 = rightDown - mesh.vertices[mesh.edges[i - 1]] * 250 - center;
+		Eigen::Vector3f p1 = rightDown - mesh.vertices[mesh.edges[i]] * 250 - center;
+
+		drawLine(p0.x(), p0.z(), p1.x(), p1.z(), Color::White);
+	}
 }
 
 
