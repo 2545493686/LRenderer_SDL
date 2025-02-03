@@ -2,10 +2,10 @@
 
 EIGEN_ALWAYS_INLINE Eigen::Matrix4f Transform::GetModelMatrix() const
 {
-    Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-	transform.translate(position);
-	transform.rotate(rotation);
-	transform.scale(scale);
+    Eigen::Affine3f affine = Eigen::Affine3f::Identity();
+	affine.translate(position);
+	affine.rotate(rotation);
+	affine.scale(scale);
 
-    return transform.matrix();
+    return affine.matrix();
 }

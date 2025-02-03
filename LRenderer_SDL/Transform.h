@@ -9,5 +9,5 @@ public:
 	Eigen::Quaternionf rotation;
 	Eigen::Vector3f scale;
 
-	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetModelMatrix() const;
+	Eigen::Matrix4f GetModelMatrix() const;
 };
