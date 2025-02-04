@@ -16,7 +16,7 @@ public:
 
 	Camera(Transform* transform);
 	Eigen::Matrix4f GetViewMatrix() const;
-	Eigen::Matrix4f GetProjectionMatrix() const;
+	Eigen::Matrix4f GetFrustumMatrix() const;
 
 private:
 	Transform *transform;
