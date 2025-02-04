@@ -1,20 +1,4 @@
-﻿#include <SDL.h>
-#include <SDL_main.h>
-#include <vector>
-#include <iostream>
-#include <fstream>
-
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>  // For file sink
-
-#include "main.h"
-#include "Framebuffer.h"
-#include "Color.h"
-#include "MeshConverter.h"
-
+﻿#include "main.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -62,6 +46,8 @@ int main(int argc, char* argv[]) {
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
+
+        // 调试只绘制一帧
     }
 
     // 释放资源
@@ -75,18 +61,8 @@ int main(int argc, char* argv[]) {
 
 void DrawFramebuffer(Framebuffer &framebuffer)
 {
-    // 绘制简单像素点
-    for (int x = 100; x < 600; ++x) {
-        framebuffer.putPixel(x, 150, Color::Red); // 红色直线
-    }
-
-    framebuffer.drawLine(0, 0, 100, 200, Color::Green);
-    framebuffer.drawLine(0, 0, framebuffer.getWidth() / 2, 
-        framebuffer.getHeight() / 2, Color::Yellow);
-
-    // 假设 pResourceData 是你已经加载的模型数据
     Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile("assets\\houtou.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+	const aiScene* scene = importer.ReadFile("assets\\cube.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
     
     if (!scene)
     {
@@ -94,9 +70,22 @@ void DrawFramebuffer(Framebuffer &framebuffer)
         abort();
     }
 
+	Transform *cameraTransform = new Transform();
+	Camera *camera = new Camera(cameraTransform);
+	camera->aspect = WIDTH / (float)HEIGHT;
+
     // 将 AIScene 转为 Mesh
 	const aiMesh* aiMesh = scene->mMeshes[0];
-	Mesh mesh = MeshConverter::Covert(aiMesh);
+	Mesh *mesh = MeshConverter::Covert(aiMesh);
     
-	framebuffer.drawMesh(mesh);
+	std::cout << mesh->edgesCount << std::endl;
+
+	Transform *meshTransform = new Transform();
+	meshTransform->position = Eigen::Vector3f(0, 0, 10);
+    meshTransform->scale = Eigen::Vector3f(1, 1, 1);
+    meshTransform->Rotate(45, 0, 0);
+
+    UnlitShader *meshShader = new UnlitShader();
+
+	framebuffer.drawMesh(mesh, meshTransform->GetModelMatrix(), meshShader);
 }

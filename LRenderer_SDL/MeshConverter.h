@@ -8,6 +8,6 @@
 class MeshConverter
 {
 public:
-	static Mesh& Covert(const aiMesh *aiMesh);
+	static Mesh* Covert(const aiMesh *aiMesh);
 };
 

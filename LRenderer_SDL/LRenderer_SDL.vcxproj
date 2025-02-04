@@ -134,26 +134,40 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\cube.fbx">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="EnvVariable.cpp" />
+    <ClCompile Include="EnvVariableCreater.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
+    <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshConverter.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderUtils.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="EnvVariable.h" />
+    <ClInclude Include="EnvVariableCreater.h" />
     <ClInclude Include="Framebuffer.h" />
+    <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshConverter.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderUtils.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -54,20 +54,51 @@ void Framebuffer::drawLine(Eigen::Vector2f p0, Eigen::Vector2f p1, uint32_t colo
 	drawLine(p0.x(), p0.y(), p1.x(), p1.y(), color);
 }
 
-void Framebuffer::drawMesh(Mesh &mesh)
+void Framebuffer::drawMesh(const Mesh *mesh, const Eigen::Matrix4f &modelMatrix, Shader *shader)
 {
-	// 屏幕中心点
-	Eigen::Vector3f center(width / 2, 0, height / 2);
+	EnvVariable *context = EnvVariableCreater::CreateEnvVariable(modelMatrix);
 
-	Eigen::Vector3f rightDown(width, 0, height);
+	shader->DrawInit(context);
+
+	appdata v;
+    v2f** v2fTemp = new v2f*[mesh->verticesCount];
+
+	for (size_t i = 0; i < mesh->verticesCount; i++)
+	{
+		v.vertex << mesh->vertices[i], 1.0f;
+		v2fTemp[i] = shader->vertex(&v);
+	}
+
+	// TODO: 计算重心坐标并插值
+
+	// 透视除法
+	for (size_t i = 0; i < mesh->verticesCount; i++)
+	{
+		v2fTemp[i]->vertex /= v2fTemp[i]->vertex.w();
+	}
+
+	// 转换到屏幕坐标
+	for (size_t i = 0; i < mesh->verticesCount; i++)
+	{
+		v2fTemp[i]->vertex.x() = (v2fTemp[i]->vertex.x() + 1) * width / 2;
+		v2fTemp[i]->vertex.y() = (v2fTemp[i]->vertex.y() + 1) * height / 2;
+	}
 
 	// 打印mesh顶点数量
-	for (size_t i = 1; i < mesh.edgesCount; i++)
+	for (size_t i = 1; i < mesh->edgesCount / 3; i++)
 	{
-		Eigen::Vector3f p0 = rightDown - mesh.vertices[mesh.edges[i - 1]] * 250 - center;
-		Eigen::Vector3f p1 = rightDown - mesh.vertices[mesh.edges[i]] * 250 - center;
-
-		drawLine(p0.x(), p0.z(), p1.x(), p1.z(), Color::White);
+		drawLine(
+			v2fTemp[mesh->edges[i * 3]]->vertex.x(), v2fTemp[mesh->edges[i * 3]]->vertex.y(),
+			v2fTemp[mesh->edges[i * 3 + 1]]->vertex.x(), v2fTemp[mesh->edges[i * 3 + 1]]->vertex.y(),
+			0xFFFFFFFF);
+		drawLine(
+			v2fTemp[mesh->edges[i * 3 + 1]]->vertex.x(), v2fTemp[mesh->edges[i * 3 + 1]]->vertex.y(),
+			v2fTemp[mesh->edges[i * 3 + 2]]->vertex.x(), v2fTemp[mesh->edges[i * 3 + 2]]->vertex.y(),
+			0xFFFFFFFF);
+		drawLine(
+			v2fTemp[mesh->edges[i * 3 + 2]]->vertex.x(), v2fTemp[mesh->edges[i * 3 + 2]]->vertex.y(),
+			v2fTemp[mesh->edges[i * 3]]->vertex.x(), v2fTemp[mesh->edges[i * 3]]->vertex.y(),
+			0xFFFFFFFF);
 	}
 }
 

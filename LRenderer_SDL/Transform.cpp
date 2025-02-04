@@ -1,11 +1,9 @@
 #include "Transform.h"
 
-EIGEN_ALWAYS_INLINE Eigen::Matrix4f Transform::GetModelMatrix() const
+void Transform::Rotate(float x, float y, float z)
 {
-    Eigen::Affine3f affine = Eigen::Affine3f::Identity();
-	affine.translate(position);
-	affine.rotate(rotation);
-	affine.scale(scale);
-
-    return affine.matrix();
+	Eigen::Quaternionf q = Eigen::AngleAxisf(x, Eigen::Vector3f::UnitX()) *
+		Eigen::AngleAxisf(y, Eigen::Vector3f::UnitY()) *
+		Eigen::AngleAxisf(z, Eigen::Vector3f::UnitZ());
+	rotation = q * rotation;
 }
