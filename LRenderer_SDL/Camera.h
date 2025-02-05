@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #define _USE_MATH_DEFINES
 
 #include "Component.h"
@@ -26,6 +26,10 @@ public:
 		return affine.matrix();
 	}
 
+	// view -> clip
+	// w = -z(view)
+	// P79_Shader入门精要_冯乐乐 
+	// LANQ 25.2.5
 	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetFrustumMatrix() const
 	{
 		Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();

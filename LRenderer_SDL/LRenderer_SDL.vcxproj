@@ -147,6 +147,9 @@
     <ClCompile Include="EnvVariable.cpp" />
     <ClCompile Include="EnvVariableCreater.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
+    <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="MathUtils.cpp" />
+    <ClCompile Include="PerspectiveCorrectInterpolation.cpp" />
     <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -162,6 +165,9 @@
     <ClInclude Include="EnvVariable.h" />
     <ClInclude Include="EnvVariableCreater.h" />
     <ClInclude Include="Framebuffer.h" />
+    <ClInclude Include="Graphics.h" />
+    <ClInclude Include="MathUtils.h" />
+    <ClInclude Include="PerspectiveCorrectInterpolation.h" />
     <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Mesh.h" />

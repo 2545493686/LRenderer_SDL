@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <limits>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -16,5 +17,7 @@
 #include "Color.h"
 #include "MeshConverter.h"
 #include "UnlitShader.h"
+#include "Graphics.h"
 
-void DrawFramebuffer(Framebuffer& framebuffer);
+
+void Draw(Framebuffer *framebuffer, Buffer<float>* zBuffer);

@@ -26,7 +26,8 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
-    Framebuffer framebuffer(WIDTH, HEIGHT);
+    Framebuffer *framebuffer = new Framebuffer(WIDTH, HEIGHT);
+    Buffer<float>* zBuffer = new Buffer<float>(WIDTH, HEIGHT);
 
     while (running) {
         // 事件处理
@@ -36,13 +37,10 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // 清屏
-        framebuffer.clear(0xFF000000); // 黑色背景
-
-        DrawFramebuffer(framebuffer);
+        Draw(framebuffer, zBuffer);
 
         // 将帧缓冲绘制到窗口
-        SDL_UpdateTexture(texture, nullptr, framebuffer.data(), WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(texture, nullptr, framebuffer->data(), WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
@@ -59,7 +57,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void DrawFramebuffer(Framebuffer &framebuffer)
+void Draw(Framebuffer *framebuffer, Buffer<float> *zBuffer)
 {
     Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile("assets\\cube.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
@@ -77,8 +75,6 @@ void DrawFramebuffer(Framebuffer &framebuffer)
     // 将 AIScene 转为 Mesh
 	const aiMesh* aiMesh = scene->mMeshes[0];
 	Mesh *mesh = MeshConverter::Covert(aiMesh);
-    
-	std::cout << mesh->edgesCount << std::endl;
 
 	Transform *meshTransform = new Transform();
 	meshTransform->position = Eigen::Vector3f(0, 0, 10);
@@ -87,5 +83,12 @@ void DrawFramebuffer(Framebuffer &framebuffer)
 
     UnlitShader *meshShader = new UnlitShader();
 
-	framebuffer.drawMesh(mesh, meshTransform->GetModelMatrix(), meshShader);
+    framebuffer->clear(Color::Black); // 黑色背景
+    // zBuffer 填充正无穷
+	zBuffer->clear(std::numeric_limits<float>::infinity()); // 最大值
+
+    Graphics::SetFramebuffer(framebuffer);
+    Graphics::SetZBuffer(zBuffer);
+    
+    Graphics::DrawMesh(mesh, meshTransform->GetModelMatrix(), meshShader);
 }
