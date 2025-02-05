@@ -36,10 +36,10 @@ public:
 
 	EIGEN_ALWAYS_INLINE static uint32_t Make(float r, float g, float b, float a)
 	{
-		return (static_cast<uint32_t>(MathUtils::Clamp<float>(r * 255.0f, 0.0f, 255.0f)) << 24)
-			| (static_cast<uint32_t>(MathUtils::Clamp<float>(g * 255.0f, 0.0f, 255.0f)) << 16)
-			| (static_cast<uint32_t>(MathUtils::Clamp<float>(b * 255.0f, 0.0f, 255.0f)) << 8)
-			| (static_cast<uint32_t>(MathUtils::Clamp<float>(a * 255.0f, 0.0f, 255.0f)));
+		return (static_cast<uint32_t>(MathUtils::Clamp<float>(a * 255.0f, 0.0f, 255.0f)) << 24)
+			| (static_cast<uint32_t>(MathUtils::Clamp<float>(r * 255.0f, 0.0f, 255.0f)) << 16)
+			| (static_cast<uint32_t>(MathUtils::Clamp<float>(g * 255.0f, 0.0f, 255.0f)) << 8)
+			| (static_cast<uint32_t>(MathUtils::Clamp<float>(b * 255.0f, 0.0f, 255.0f)));
 	}
 };
 

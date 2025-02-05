@@ -18,7 +18,8 @@ public:
 	}
 
 	// It = (a * Ia / Za + b * Ib / Zb + c * Ic / Zc) * zt
-	EIGEN_ALWAYS_INLINE static Eigen::Vector4f InterpolationVector(Eigen::Vector3f barycentric, float z[3], float zt, Eigen::Vector4f vec[3])
+	template <typename T>
+	EIGEN_ALWAYS_INLINE static T InterpolationVector(Eigen::Vector3f barycentric, float z[3], float zt, T vec[3])
 	{
 		float a = barycentric.x();
 		float b = barycentric.y();

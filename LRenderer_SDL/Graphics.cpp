@@ -25,6 +25,11 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 	for (size_t i = 0; i < mesh->verticesCount; i++)
 	{
 		v.vertex << mesh->vertices[i], 1.0f;
+		v.uv0 = mesh->uv0[i];
+		v.uv1 = mesh->uv1[i];
+		v.uv2 = mesh->uv2[i];
+		v.uv3 = mesh->uv3[i];
+
 		v2fTemp[i] = shader->vertex(v);
 	}
 
@@ -67,19 +72,19 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 			screenPosTemp[j].y() = (ndcTemp[j].y() + 1) * framebuffer->getHeight() / 2;
 		}
 
-		// DEBUG
-		framebuffer->drawLine(
-			screenPosTemp[0].x(), screenPosTemp[0].y(),
-			screenPosTemp[1].x(), screenPosTemp[1].y(),
-			Color::LightGray);
-		framebuffer->drawLine(
-			screenPosTemp[1].x(), screenPosTemp[1].y(),
-			screenPosTemp[2].x(), screenPosTemp[2].y(),
-			Color::LightGray);
-		framebuffer->drawLine(
-			screenPosTemp[2].x(), screenPosTemp[2].y(),
-			screenPosTemp[0].x(), screenPosTemp[0].y(),
-			Color::LightGray);
+		//// DEBUG
+		//framebuffer->drawLine(
+		//	screenPosTemp[0].x(), screenPosTemp[0].y(),
+		//	screenPosTemp[1].x(), screenPosTemp[1].y(),
+		//	Color::LightGray);
+		//framebuffer->drawLine(
+		//	screenPosTemp[1].x(), screenPosTemp[1].y(),
+		//	screenPosTemp[2].x(), screenPosTemp[2].y(),
+		//	Color::LightGray);
+		//framebuffer->drawLine(
+		//	screenPosTemp[2].x(), screenPosTemp[2].y(),
+		//	screenPosTemp[0].x(), screenPosTemp[0].y(),
+		//	Color::LightGray);
 
 		Eigen::Vector2f aabbMin
 			= screenPosTemp[0].cwiseMin(screenPosTemp[1]).cwiseMin(screenPosTemp[2]);
@@ -113,9 +118,20 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 				// TODO: 所有属性插值
 				v2f v2f;
 				v2f.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp);
-				v2f.vertex /= 3;
 
-				framebuffer->putPixel(x, y, Color::Make(v2f.vertex.x(), v2f.vertex.y(), v2f.vertex.z()));
+				for (size_t i = 0; i < 4; i++)
+				{
+					Eigen::Vector4f texcoordTemp[3] = {
+						v2fTemp[indexes[0]].texcoords[i],
+						v2fTemp[indexes[1]].texcoords[i],
+						v2fTemp[indexes[2]].texcoords[i],
+					};
+
+					v2f.texcoords[i] = Eigen::Vector4f(PCI::InterpolationVector(barycentric, z, zt, texcoordTemp));
+				}
+
+				v2f.texcoords[0].w() = 1.0f;
+				framebuffer->putPixel(x, y, Color::Make(v2f.texcoords[0]));
 			}
 		}
 	}

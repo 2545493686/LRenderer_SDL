@@ -27,5 +27,21 @@ Mesh* MeshConverter::Covert(const aiMesh* aiMesh)
 		mesh->edges[i * 3 + 2] = aiMesh->mFaces[i].mIndices[2];
 	}
 
+	// 获取uv
+	for (size_t i = 0; i < 4; i++)
+	{
+		*(mesh->uvs[i]) = new Eigen::Vector2f[mesh->verticesCount];
+
+		if (aiMesh->HasTextureCoords(i))
+		{
+			for (size_t j = 0; j < mesh->verticesCount; j++)
+			{
+				(*(mesh->uvs[i]))[j] = Eigen::Vector2f(
+					aiMesh->mTextureCoords[i][j].x,
+					aiMesh->mTextureCoords[i][j].y);
+			}
+		}
+	}
+
 	return mesh;
 }

@@ -5,11 +5,16 @@
 struct appdata
 {
 	Eigen::Vector4f vertex;
+	Eigen::Vector2f uv0;
+	Eigen::Vector2f uv1;
+	Eigen::Vector2f uv2;
+	Eigen::Vector2f uv3;
 };
 
 struct v2f
 {
 	Eigen::Vector4f vertex;
+	Eigen::Vector4f texcoords[4];
 };
 
 class Shader
