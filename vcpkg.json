@@ -1,0 +1,8 @@
+{
+  "name": "l-renderer",
+  "version": "0.0.1",
+  "dependencies": [
+    "assimp",
+    "fmt"
+  ]
+}

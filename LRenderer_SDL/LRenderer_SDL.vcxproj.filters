@@ -22,6 +22,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="README.md" />
+    <None Include="..\vcpkg.json" />
+    <None Include="..\vcpkg-configuration.json" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
