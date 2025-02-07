@@ -19,6 +19,14 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
+    int imgFlags = IMG_INIT_PNG;
+    int initializedFlags = IMG_Init(imgFlags);
+    if ((initializedFlags & imgFlags) != imgFlags) {
+        spdlog::error("SDL_image 初始化失败: %s", IMG_GetError());
+        SDL_Quit();
+        return -1;
+    }
+
     SDL_Window* window = SDL_CreateWindow("LRenderer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
@@ -29,6 +37,8 @@ int main(int argc, char* argv[]) {
     Framebuffer *framebuffer = new Framebuffer(WIDTH, HEIGHT);
     Buffer<float>* zBuffer = new Buffer<float>(WIDTH, HEIGHT);
 
+    Scene *scene = CreateScene();
+
     while (running) {
         // 事件处理
         while (SDL_PollEvent(&event)) {
@@ -37,7 +47,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        Draw(framebuffer, zBuffer);
+        Draw(framebuffer, zBuffer, scene);
 
         // 将帧缓冲绘制到窗口
         SDL_UpdateTexture(texture, nullptr, framebuffer->data(), WIDTH * sizeof(uint32_t));
@@ -57,31 +67,67 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void Draw(Framebuffer *framebuffer, Buffer<float> *zBuffer)
+Scene* CreateScene()
 {
+	Scene *scene = new Scene();
+
+#pragma region 载入外部文件
+
+    // cube
     Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile("assets\\cube.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
-    
-    if (!scene)
+    const aiScene *aiscene = importer.ReadFile("assets\\cube.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+    if (!aiscene)
     {
         spdlog::error(importer.GetErrorString());
         abort();
     }
+    const aiMesh *cubeAiMesh = aiscene->mMeshes[0];
+    Mesh *cubeMesh = MeshConverter::Covert(cubeAiMesh);
 
+    // texture
+    SDL_Surface *uvTexSurface = IMG_Load("assets\\texture.png");
+    if (!uvTexSurface) {
+        spdlog::error(IMG_GetError());
+        abort();
+    }
+	Texture* uvTex = TextureCreater::Create(uvTexSurface);
+
+
+#pragma endregion
+
+#pragma region 立方体
+    GameObject *cube = new GameObject();
+
+#pragma region Transform
+    Transform* meshTransform = new Transform();
+    meshTransform->position = Eigen::Vector3f(0, 0, 10);
+    meshTransform->scale = Eigen::Vector3f(1, 1, 1);
+    meshTransform->Rotate(15, 0, 0);
+    cube->AddComponent(meshTransform);
+#pragma endregion
+
+#pragma region MeshRenderer
+    MeshRenderer* meshRenderer = new MeshRenderer();
+
+    meshRenderer->mesh = cubeMesh;
+
+    UnlitShader* meshShader = new UnlitShader();
+    meshShader->tex1 = uvTex;
+	meshRenderer->shader = meshShader;
+    cube->AddComponent(meshRenderer);
+#pragma endregion
+
+    scene->AddGameObject(cube);
+#pragma endregion
+
+    return scene;
+}
+
+void Draw(Framebuffer *framebuffer, Buffer<float> *zBuffer, Scene *scene)
+{
 	Transform *cameraTransform = new Transform();
 	Camera *camera = new Camera(cameraTransform);
 	camera->aspect = WIDTH / (float)HEIGHT;
-
-    // 将 AIScene 转为 Mesh
-	const aiMesh* aiMesh = scene->mMeshes[0];
-	Mesh *mesh = MeshConverter::Covert(aiMesh);
-
-	Transform *meshTransform = new Transform();
-	meshTransform->position = Eigen::Vector3f(0, 0, 10);
-    meshTransform->scale = Eigen::Vector3f(1, 1, 1);
-    meshTransform->Rotate(45, 0, 0);
-
-    UnlitShader *meshShader = new UnlitShader();
 
     framebuffer->clear(Color::Black); // 黑色背景
     // zBuffer 填充正无穷
@@ -90,5 +136,17 @@ void Draw(Framebuffer *framebuffer, Buffer<float> *zBuffer)
     Graphics::SetFramebuffer(framebuffer);
     Graphics::SetZBuffer(zBuffer);
     
-    Graphics::DrawMesh(mesh, meshTransform->GetModelMatrix(), meshShader);
+    for (auto gameObject : scene->GetGameObjects())
+    {
+        MeshRenderer* renderer = gameObject->GetComponent<MeshRenderer>();
+        
+        if (renderer == nullptr)
+        {
+            continue;
+        }
+
+        Transform *transform = gameObject->GetComponent<Transform>();
+
+        Graphics::DrawMesh(renderer->mesh, transform->GetModelMatrix(), renderer->shader);
+    }
 }

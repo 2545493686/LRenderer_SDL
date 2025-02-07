@@ -10,5 +10,8 @@ v2f UnlitShader::vertex(const appdata &v)
 
 Eigen::Vector4f UnlitShader::fragment(const v2f& i)
 {
-	return Eigen::Vector4f(1, 1, 1, 1);
+	//Eigen::Vector4f color = i.texcoords[0];
+	//color.w() = 1;
+	Eigen::Vector4f color = tex1->Sample(i.texcoords[0].x(), i.texcoords[0].y());
+	return color;
 }

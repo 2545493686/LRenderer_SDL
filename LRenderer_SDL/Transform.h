@@ -1,8 +1,12 @@
 #pragma once
 
-#include "Eigen/Dense"
+#define _USE_MATH_DEFINES
 
-class Transform
+#include <cmath>
+#include "Eigen/Dense"
+#include "Component.h"
+
+class Transform : public Component
 {
 public:
 	Eigen::Vector3f position = Eigen::Vector3f(0, 0, 0);

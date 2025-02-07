@@ -4,9 +4,10 @@
   "builtin-baseline": "ab42fb3032acd29dd12cea7897f85025526a60e6",
   "dependencies": [
     "assimp",
+    "eigen3",
     "fmt",
     "sdl2",
     "spdlog",
-    "eigen3"
+    "sdl2-image"
   ]
 }

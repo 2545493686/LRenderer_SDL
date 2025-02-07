@@ -130,8 +130,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					v2f.texcoords[i] = Eigen::Vector4f(PCI::InterpolationVector(barycentric, z, zt, texcoordTemp));
 				}
 
-				v2f.texcoords[0].w() = 1.0f;
-				framebuffer->putPixel(x, y, Color::Make(v2f.texcoords[0]));
+				framebuffer->putPixel(x, y,  Color::Make(shader->fragment(v2f)));
 			}
 		}
 	}
