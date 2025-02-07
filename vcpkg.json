@@ -1,9 +1,11 @@
 {
   "name": "l-renderer",
   "version": "0.0.1",
+  "builtin-baseline": "ab42fb3032acd29dd12cea7897f85025526a60e6",
   "dependencies": [
     "assimp",
-    "fmt"
-  ],
-  "builtin-baseline": "ab42fb3032acd29dd12cea7897f85025526a60e6"
+    "fmt",
+    "sdl2",
+    "spdlog"
+  ]
 }
