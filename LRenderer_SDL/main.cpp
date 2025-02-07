@@ -102,7 +102,7 @@ Scene* CreateScene()
     Transform* meshTransform = new Transform();
     meshTransform->position = Eigen::Vector3f(0, 0, 10);
     meshTransform->scale = Eigen::Vector3f(1, 1, 1);
-    meshTransform->Rotate(15, 0, 0);
+    meshTransform->Rotate(30, 0, 0);
     cube->AddComponent(meshTransform);
 #pragma endregion
 

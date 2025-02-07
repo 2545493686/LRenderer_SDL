@@ -7,8 +7,8 @@ void Transform::Rotate(float x, float y, float z)
 	y *= M_PI / 180.0f;
 	z *= M_PI / 180.0f;
 
-	Eigen::Quaternionf q = Eigen::AngleAxisf(x, Eigen::Vector3f::UnitX()) *
-
+	Eigen::Quaternionf q = 
+		Eigen::AngleAxisf(x, Eigen::Vector3f::UnitX()) *
 		Eigen::AngleAxisf(y, Eigen::Vector3f::UnitY()) *
 		Eigen::AngleAxisf(z, Eigen::Vector3f::UnitZ());
 	rotation = q * rotation;

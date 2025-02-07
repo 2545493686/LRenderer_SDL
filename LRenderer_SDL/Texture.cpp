@@ -20,7 +20,7 @@ Eigen::Vector4f Texture::Sample(float u, float v)
 {
 	// TODO: 自动msaa或者bilinear
 	int x = (int)(u * width);
-	int y = (int)(v * height);
+	int y = (int)((1 - v) * height);
 
 	return GetPixel(x, y);
 }
