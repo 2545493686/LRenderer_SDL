@@ -3,16 +3,22 @@
 #include "Eigen/Dense"
 
 
-enum WrapMode
-{
-	none,
-	clamp,
-	repeat,
-};
-
 class Texture {
+	enum WrapMode
+	{
+		WrapNone,
+		WrapClamp,
+		WrapRepeat,
+	};
+
+	enum FilterMode
+	{
+		FilterNone,
+		FilterLinear,
+	};
+
 public:
-	WrapMode wrapMode = WrapMode::repeat;
+	WrapMode wrapMode = Texture::WrapMode::WrapRepeat;
 	Eigen::Vector4f* data;
 	int width;
 	int height;

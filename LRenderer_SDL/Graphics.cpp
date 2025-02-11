@@ -3,6 +3,7 @@
 Framebuffer* Graphics::framebuffer = nullptr;
 Buffer<float>* Graphics::zBuffer = nullptr;
 
+
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
 	Graphics::framebuffer = framebuffer;
@@ -11,6 +12,11 @@ void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 void Graphics::SetZBuffer(Buffer<float>* zBuffer)
 {
 	Graphics::zBuffer = zBuffer;
+}
+
+void Graphics::SetVectorMotionBuffer(Buffer<Eigen::Vector3f>* motionVectorBuffer)
+{
+	Graphics::motionVectorBuffer = motionVectorBuffer;
 }
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
