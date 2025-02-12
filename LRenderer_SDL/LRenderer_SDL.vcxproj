@@ -160,6 +160,7 @@
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="PerspectiveCorrectInterpolation.cpp" />
     <ClCompile Include="Pool.cpp" />
+    <ClCompile Include="Random.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureCreater.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="PerspectiveCorrectInterpolation.h" />
     <ClInclude Include="Pool.h" />
+    <ClInclude Include="Random.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureCreater.h" />

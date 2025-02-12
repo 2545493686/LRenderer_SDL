@@ -35,7 +35,6 @@ int main(int argc, char* argv[]) {
     SDL_Event event;
 
     Framebuffer *framebuffer = new Framebuffer(WIDTH, HEIGHT);
-    Buffer<float>* zBuffer = new Buffer<float>(WIDTH, HEIGHT);
 
     Scene *scene = CreateScene();
 
@@ -47,15 +46,13 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        Draw(framebuffer, zBuffer, scene);
+        Draw(framebuffer, scene);
 
         // 将帧缓冲绘制到窗口
         SDL_UpdateTexture(texture, nullptr, framebuffer->data(), WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
-
-        // 调试只绘制一帧
     }
 
     // 释放资源
@@ -123,18 +120,14 @@ Scene* CreateScene()
     return scene;
 }
 
-void Draw(Framebuffer *framebuffer, Buffer<float> *zBuffer, Scene *scene)
+void Draw(Framebuffer *framebuffer, Scene *scene)
 {
 	Transform *cameraTransform = new Transform();
 	Camera *camera = new Camera(cameraTransform);
 	camera->aspect = WIDTH / (float)HEIGHT;
 
     framebuffer->clear(Color::Black); // 黑色背景
-    // zBuffer 填充正无穷
-	zBuffer->clear(std::numeric_limits<float>::infinity()); // 最大值
-
     Graphics::SetFramebuffer(framebuffer);
-    Graphics::SetZBuffer(zBuffer);
     
     for (auto gameObject : scene->GetGameObjects())
     {

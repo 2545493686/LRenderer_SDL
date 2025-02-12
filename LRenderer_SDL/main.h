@@ -29,5 +29,5 @@
 #include "Texture.h"
 #include "TextureCreater.h"
 
-void Draw(Framebuffer* framebuffer, Buffer<float>* zBuffer, Scene* scene);
+void Draw(Framebuffer* framebuffer, Scene* scene);
 Scene* CreateScene();

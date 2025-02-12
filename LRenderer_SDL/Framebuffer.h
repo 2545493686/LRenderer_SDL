@@ -18,6 +18,7 @@ public:
     void clear(T color);
     void putPixel(int x, int y, T color);
     T getPixel(int x, int y);
+    T& referPixel(int x, int y);
 
     void drawLine(int x0, int y0, int x1, int y1, T color);
     void drawLine(Eigen::Vector2f p0, Eigen::Vector2f p1, T color);
@@ -37,7 +38,7 @@ Buffer<T>::Buffer(int width, int height)
 {
     this->width = width;
     this->height = height;
-    this->frameBuffer.resize(width * height, 0);
+    this->frameBuffer.resize(width * height);
 }
 
 template<typename T>
@@ -47,12 +48,15 @@ void Buffer<T>::clear(T color)
 }
 
 template<typename T>
+T& Buffer<T>::referPixel(int x, int y)
+{
+    return frameBuffer[y * width + x];
+}
+
+template<typename T>
 T Buffer<T>::getPixel(int x, int y)
 {
-    if (x >= 0 && x < width && y >= 0 && y < height) {
-        return frameBuffer[y * width + x];
-    }
-    return T(); // Return default value if out of bounds
+    return frameBuffer[y * width + x];
 }
 
 template<typename T>

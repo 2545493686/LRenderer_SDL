@@ -1,22 +1,41 @@
 ﻿#include "Graphics.h"
 
 Framebuffer* Graphics::framebuffer = nullptr;
-Buffer<float>* Graphics::zBuffer = nullptr;
+Buffer<Graphics::PixelData>* Graphics::gBuffer = nullptr;
 
+const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
+	Eigen::Vector2f(-0.25f, 0.25f),
+    Eigen::Vector2f(0.25f, 0.25f),
+    Eigen::Vector2f(-0.25f, -0.25f),
+    Eigen::Vector2f(0.25f, -0.25f),
+};
 
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
+	// FIXME: 更正确的处理
+	if (framebuffer == Graphics::framebuffer)
+	{
+		return;
+	}
+
 	Graphics::framebuffer = framebuffer;
-}
 
-void Graphics::SetZBuffer(Buffer<float>* zBuffer)
-{
-	Graphics::zBuffer = zBuffer;
-}
+	if (gBuffer != nullptr)
+	{
+		delete gBuffer;
+	}
 
-void Graphics::SetVectorMotionBuffer(Buffer<Eigen::Vector3f>* motionVectorBuffer)
-{
-	Graphics::motionVectorBuffer = motionVectorBuffer;
+	gBuffer = new Buffer<PixelData>(framebuffer->getWidth(), framebuffer->getHeight());
+	
+	PixelData temp;
+	temp.sampleCount = 0;
+	for (size_t i = 0; i < MSAA_TYPE; i++)
+	{
+		temp.subpixels[i].sampleCount = 0;
+		temp.subpixels[i].z = std::numeric_limits<float>::infinity();
+	}
+
+	gBuffer->clear(temp);
 }
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
@@ -39,7 +58,8 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		v2fTemp[i] = shader->vertex(v);
 	}
 
-	// TODO: 计算重心坐标并插值
+	static auto provider = Random::InSquare(0.5);
+	const auto bias = provider.Pop();
 
 	// 遍历三角形
 	for (size_t i = 0; i < mesh->edgesCount / 3; i++)
@@ -78,7 +98,8 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 			screenPosTemp[j].y() = (ndcTemp[j].y() + 1) * framebuffer->getHeight() / 2;
 		}
 
-		//// DEBUG
+#pragma region DEBUG_画线
+		// DEBUG
 		//framebuffer->drawLine(
 		//	screenPosTemp[0].x(), screenPosTemp[0].y(),
 		//	screenPosTemp[1].x(), screenPosTemp[1].y(),
@@ -91,6 +112,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		//	screenPosTemp[2].x(), screenPosTemp[2].y(),
 		//	screenPosTemp[0].x(), screenPosTemp[0].y(),
 		//	Color::LightGray);
+#pragma endregion
 
 		Eigen::Vector2f aabbMin
 			= screenPosTemp[0].cwiseMin(screenPosTemp[1]).cwiseMin(screenPosTemp[2]);
@@ -101,43 +123,102 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		{
 			for (int y = (int)aabbMin.y(); y <= (int)aabbMax.y(); y++)
 			{
-				Eigen::Vector2f point = Eigen::Vector2f(x + 0.5f, y + 0.5f);
+				auto& pixelData = gBuffer->referPixel(x, y);
 
-				if (!MathUtils::InTriangle(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]))
+				for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 				{
-					continue;
+					Eigen::Vector2f point = Eigen::Vector2f(x + 0.5f, y + 0.5f);
+					point += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
+
+					if (!MathUtils::InTriangle(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]))
+					{
+						continue;
+					}
+
+
+					Eigen::Vector3f barycentric =
+						MathUtils::Barycentric(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]);
+
+					auto&subpixel = pixelData.subpixels[subpixelIndex];
+
+					float zt = PCI::InterpolationZ(barycentric, z);
+
+					if (zt > subpixel.z)
+					{
+						continue;
+					}
+
+					subpixel.z = zt;
+					subpixel.screenPosition = point;
+
+					// TODO: 所有属性插值
+					v2f v2f;
+					v2f.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp);
+
+					for (size_t i = 0; i < 4; i++)
+					{
+						Eigen::Vector4f texcoordTemp[3] = {
+							v2fTemp[indexes[0]].texcoords[i],
+							v2fTemp[indexes[1]].texcoords[i],
+							v2fTemp[indexes[2]].texcoords[i],
+						};
+
+						v2f.texcoords[i] = Eigen::Vector4f(PCI::InterpolationVector(barycentric, z, zt, texcoordTemp));
+					}
+
+					subpixel.v2f = v2f;
 				}
+			}
+		}
+	}
 
-				Eigen::Vector3f barycentric =
-					MathUtils::Barycentric(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]);
+	// 延迟渲染
+	for (int x = 0; x < gBuffer->getWidth(); x++)
+	{
+		for (int y = 0; y < gBuffer->getHeight(); y++)
+		{
+			auto& pixelData = gBuffer->referPixel(x, y);
 
-				//float zt = z[0] * barycentric.x() + z[1] * barycentric.y() + z[2] * barycentric.z();
-				float zt = PCI::InterpolationZ(barycentric, z);
+			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			{
+				auto& subpixel = pixelData.subpixels[subpixelIndex];
 
-				if (zt > zBuffer->getPixel(x, y))
+				auto target = shader->fragment(subpixel.v2f);
+
+				auto sampleCount = subpixel.sampleCount;
+				subpixel.color *= (sampleCount) / float(sampleCount + 1);
+				subpixel.color += target / float(sampleCount + 1);
+			}
+
+			Eigen::Vector4f colorTemp = Eigen::Vector4f::Zero();
+			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			{
+				colorTemp += pixelData.subpixels[subpixelIndex].color;
+			}
+			colorTemp /= MSAA_TYPE;
+			framebuffer->putPixel(x, y, Color::Make(colorTemp));
+		}
+	}
+
+	// 清理 Z 缓存
+	for (int x = 0; x < gBuffer->getWidth(); x++)
+	{
+        for (int y = 0; y < gBuffer->getHeight(); y++)
+		{
+			auto& pixelData = gBuffer->referPixel(x, y);
+
+            for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			{
+				auto& subpixel = pixelData.subpixels[subpixelIndex];
+				subpixel.z = std::numeric_limits<float>::infinity();
+				subpixel.sampleCount++;
+
+				if (x == 0 && y == 0 && subpixelIndex == 0)
 				{
-					continue;
+					spdlog::info("subpixel.sampleCount: {}", subpixel.sampleCount);
 				}
-
-				zBuffer->putPixel(x, y, zt);
-
-				// TODO: 所有属性插值
-				v2f v2f;
-				v2f.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp);
-
-				for (size_t i = 0; i < 4; i++)
-				{
-					Eigen::Vector4f texcoordTemp[3] = {
-						v2fTemp[indexes[0]].texcoords[i],
-						v2fTemp[indexes[1]].texcoords[i],
-						v2fTemp[indexes[2]].texcoords[i],
-					};
-
-					v2f.texcoords[i] = Eigen::Vector4f(PCI::InterpolationVector(barycentric, z, zt, texcoordTemp));
-				}
-
-				framebuffer->putPixel(x, y,  Color::Make(shader->fragment(v2f)));
 			}
 		}
 	}
 }
+
