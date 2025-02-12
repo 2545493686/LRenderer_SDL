@@ -20,7 +20,7 @@ public:
 
 		Eigen::Vector2f screenPosition;
 
-		// TODO:
+		// TODO: 运动向量
 		Eigen::Vector4f worldPosition;
 		Eigen::Vector2f vectorMotion;
 

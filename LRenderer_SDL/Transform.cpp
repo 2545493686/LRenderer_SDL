@@ -1,6 +1,6 @@
 ﻿#include "Transform.h"
 
-// TODO: 有严重bug，根本没实现对
+// TODO: FIXME 有严重bug，根本没实现对
 void Transform::Rotate(float x, float y, float z)
 {
 	x *= M_PI / 180.0f;

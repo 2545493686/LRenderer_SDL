@@ -12,7 +12,7 @@ const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
 
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
-	// FIXME: 更正确的处理
+	// TODO: FIXME 更正确的处理
 	if (framebuffer == Graphics::framebuffer)
 	{
 		return;
