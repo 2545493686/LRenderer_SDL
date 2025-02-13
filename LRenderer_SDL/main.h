@@ -5,8 +5,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_main.h>
 
-#include <SDL2/SDL_image.h>
-
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -30,7 +28,7 @@
 #include "Scene.h"
 #include "MeshRenderer.h"
 #include "Texture.h"
-#include "TextureCreater.h"
+#include "TextureLoader.h"
 
 void Draw(Framebuffer* framebuffer, Scene* scene);
 Scene* CreateScene();

@@ -74,12 +74,7 @@ Scene* CreateScene()
     Mesh *cubeMesh = MeshLoader::Load("assets\\cube.fbx");
 
     // texture
-    SDL_Surface *uvTexSurface = IMG_Load("assets\\texture.png");
-    if (!uvTexSurface) {
-        spdlog::error(IMG_GetError());
-        abort();
-    }
-	Texture* uvTex = TextureCreater::Create(uvTexSurface);
+    Texture* uvTex = TextureLoader::LoadPNG("assets\\texture.png");;
 
     // 天空盒
 
