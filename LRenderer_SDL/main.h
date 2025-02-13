@@ -18,6 +18,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>  // For file sink
 
+#include <OpenEXR/ImfRgbaFile.h>
+#include <OpenEXR/ImfArray.h>
+
 #include "Framebuffer.h"
 #include "Color.h"
 #include "MeshConverter.h"

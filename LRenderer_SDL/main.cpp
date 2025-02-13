@@ -89,6 +89,8 @@ Scene* CreateScene()
     }
 	Texture* uvTex = TextureCreater::Create(uvTexSurface);
 
+    // 天空盒
+
 
 #pragma endregion
 
