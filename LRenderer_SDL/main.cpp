@@ -71,15 +71,7 @@ Scene* CreateScene()
 #pragma region 载入外部文件
 
     // cube
-    Assimp::Importer importer;
-    const aiScene *aiscene = importer.ReadFile("assets\\cube.fbx", aiProcess_Triangulate | aiProcess_GenSmoothNormals);
-    if (!aiscene)
-    {
-        spdlog::error(importer.GetErrorString());
-        abort();
-    }
-    const aiMesh *cubeAiMesh = aiscene->mMeshes[0];
-    Mesh *cubeMesh = MeshConverter::Covert(cubeAiMesh);
+    Mesh *cubeMesh = MeshLoader::Load("assets\\cube.fbx");
 
     // texture
     SDL_Surface *uvTexSurface = IMG_Load("assets\\texture.png");

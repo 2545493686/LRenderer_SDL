@@ -125,6 +125,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions> /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(SolutionDir)\vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,6 +159,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="MathUtils.cpp" />
+    <ClCompile Include="MeshLoader.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="PerspectiveCorrectInterpolation.cpp" />
     <ClCompile Include="Pool.cpp" />
@@ -168,7 +170,6 @@
     <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshConverter.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderUtils.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="MathUtils.h" />
+    <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="PerspectiveCorrectInterpolation.h" />
     <ClInclude Include="Pool.h" />
@@ -194,7 +196,6 @@
     <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshConverter.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderUtils.h" />
     <ClInclude Include="Transform.h" />

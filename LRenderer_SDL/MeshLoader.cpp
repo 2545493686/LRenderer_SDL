@@ -1,9 +1,26 @@
-﻿#include "MeshConverter.h"
+﻿#include "MeshLoader.h"
 
-// TODO: 非三角化模型导入
-Mesh* MeshConverter::Covert(const aiMesh* aiMesh)
+Mesh* MeshLoader::Load(const char* filename)
 {
-	Mesh *mesh = new Mesh();
+    return LoadByAIMesh(filename);
+}
+
+Mesh* MeshLoader::LoadByAIMesh(const char* filename)
+{
+	Assimp::Importer importer;
+	const aiScene* aiscene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+	if (!aiscene)
+	{
+		spdlog::error(importer.GetErrorString());
+		abort();
+	}
+	const aiMesh* cubeAiMesh = aiscene->mMeshes[0];
+	return CovertAIMesh(cubeAiMesh);
+}
+
+Mesh* MeshLoader::CovertAIMesh(const aiMesh* aiMesh)
+{
+	Mesh* mesh = new Mesh();
 
 	mesh->verticesCount = aiMesh->mNumVertices;
 	mesh->vertices = new Eigen::Vector3f[mesh->verticesCount];
@@ -12,8 +29,8 @@ Mesh* MeshConverter::Covert(const aiMesh* aiMesh)
 	for (size_t i = 0; i < aiMesh->mNumVertices; i++)
 	{
 		mesh->vertices[i] = Eigen::Vector3f(
-			aiMesh->mVertices[i].x, 
-			aiMesh->mVertices[i].y, 
+			aiMesh->mVertices[i].x,
+			aiMesh->mVertices[i].y,
 			aiMesh->mVertices[i].z);
 	}
 

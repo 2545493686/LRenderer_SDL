@@ -23,7 +23,7 @@
 
 #include "Framebuffer.h"
 #include "Color.h"
-#include "MeshConverter.h"
+#include "MeshLoader.h"
 #include "UnlitShader.h"
 #include "Graphics.h"
 #include "Camera.h"
