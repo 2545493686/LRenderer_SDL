@@ -217,5 +217,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 			}
 		}
 	}
+
+	delete context;
 }
 

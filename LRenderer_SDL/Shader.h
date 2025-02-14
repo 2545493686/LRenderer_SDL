@@ -18,6 +18,7 @@ struct v2f
 	Eigen::Vector4f texcoords[4];
 };
 
+// 注意：任何着色器都不应该保留状态
 class Shader
 {
 public:
