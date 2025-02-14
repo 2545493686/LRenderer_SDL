@@ -5,45 +5,17 @@
 #include "PerspectiveCorrectInterpolation.h"
 #include "Random.h"
 #include "spdlog/spdlog.h"
-
-constexpr auto MSAA_X4 = 4;
-constexpr auto MSAA_TYPE = MSAA_X4;
+#include "GraphicsSettings.h"
 
 class Graphics
 {
 public:
-	struct SubpixelData
-	{
-		Eigen::Vector4f color;
-		uint8_t sampleCount;
-		float z;
-
-		Eigen::Vector2f screenPosition;
-
-		// TODO: 运动向量
-		Eigen::Vector4f worldPosition;
-		Eigen::Vector2f vectorMotion;
-
-		v2f v2f;
-		bool valid;
-	};
-
-	struct PixelData
-	{
-		// TODO: 锚点颜色
-		uint16_t sampleCount;
-		Eigen::Vector4f anchorColor;
-
-		SubpixelData subpixels[MSAA_TYPE];
-	};
-
 	// 输出
-	static void SetFramebuffer(Framebuffer* framebuffer);
+	static void SetFramebuffer(Framebuffer *framebuffer);
 	static void DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
 
 private:
 	static Framebuffer* framebuffer;
-	static Buffer<PixelData>* gBuffer;
 
 	static Eigen::Vector2f GetSubpixelPointBias(int x, int y, int i);
 

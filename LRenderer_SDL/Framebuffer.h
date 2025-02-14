@@ -9,6 +9,8 @@
 #include "Shader.h"
 #include "EnvVariableCreater.h"
 #include "MathUtils.h"
+#include "Shader.h"
+#include "GraphicsSettings.h"
 
 template<typename T>
 class Buffer {
@@ -104,9 +106,67 @@ void Buffer<T>::drawLine(Eigen::Vector2f p0, Eigen::Vector2f p1, T color)
 }
 
 
-class Framebuffer : public Buffer<uint32_t> {
+class Colorbuffer : public Buffer<uint32_t> {
 public:
-    Framebuffer(int width, int height) : Buffer<uint32_t>(width, height) {}
+    Colorbuffer(int width, int height) : Buffer<uint32_t>(width, height) {}
+};
+
+struct SubpixelData
+{
+    Eigen::Vector4f color;
+    uint8_t sampleCount;
+    float z;
+
+    Eigen::Vector2f screenPosition;
+
+    // TODO: 运动向量
+    Eigen::Vector4f worldPosition;
+    Eigen::Vector2f vectorMotion;
+
+    v2f v2f;
+    bool valid;
+};
+
+struct PixelData
+{
+    // TODO: 锚点颜色
+    uint16_t sampleCount;
+    Eigen::Vector4f anchorColor;
+
+    SubpixelData subpixels[MSAA_TYPE];
+};
+
+class Framebuffer {
+public:
+    Framebuffer(int width, int height) 
+        :   colorBuffer(width, height), 
+            pixelBuffer(width, height)
+    {
+        this->width = width;
+        this->height = height;
+
+        PixelData temp;
+        temp.sampleCount = 0;
+        for (size_t i = 0; i < MSAA_TYPE; i++)
+        {
+            temp.subpixels[i].valid = false;
+            temp.subpixels[i].color = Color::Make(Color::Black);
+            temp.subpixels[i].sampleCount = 0;
+            temp.subpixels[i].z = std::numeric_limits<float>::infinity();
+        }
+
+        pixelBuffer.clear(temp);
+    }
+
+    Colorbuffer colorBuffer;
+    Buffer<PixelData> pixelBuffer;
+    
+    int getWidth() const { return width; }
+    int getHeight() const { return height; }
+
+private:
+    int width;
+    int height;
 };
 
 template class Buffer<float>;

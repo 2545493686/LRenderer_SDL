@@ -38,6 +38,8 @@ int main(int argc, char* argv[]) {
 
     Scene *scene = CreateScene();
 
+    int frameCount = 0;
+
     while (running) {
         // 事件处理
         while (SDL_PollEvent(&event)) {
@@ -49,10 +51,13 @@ int main(int argc, char* argv[]) {
         Draw(framebuffer, scene);
 
         // 将帧缓冲绘制到窗口
-        SDL_UpdateTexture(texture, nullptr, framebuffer->data(), WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(texture, nullptr, framebuffer->colorBuffer.data(), WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
+        
+        frameCount++;
+        //std::cout << "FPS: " << frameCount << "\n";
     }
 
     // 释放资源
@@ -121,7 +126,7 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 	Camera *camera = new Camera(cameraTransform);
 	camera->aspect = WIDTH / (float)HEIGHT;
 
-    framebuffer->clear(Color::Black); // 黑色背景
+    //framebuffer->colorBuffer.clear(Color::Black); // 黑色背景
     Graphics::SetFramebuffer(framebuffer);
     
     for (auto gameObject : scene->GetGameObjects())

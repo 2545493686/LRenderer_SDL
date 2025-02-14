@@ -1,7 +1,6 @@
 ﻿#include "Graphics.h"
 
 Framebuffer* Graphics::framebuffer = nullptr;
-Buffer<Graphics::PixelData>* Graphics::gBuffer = nullptr;
 
 const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
 	Eigen::Vector2f(-0.25f, 0.25f),
@@ -12,32 +11,7 @@ const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
 
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
-	// TODO: FIXME 更正确的处理
-	if (framebuffer == Graphics::framebuffer)
-	{
-		return;
-	}
-
 	Graphics::framebuffer = framebuffer;
-
-	if (gBuffer != nullptr)
-	{
-		delete gBuffer;
-	}
-
-	gBuffer = new Buffer<PixelData>(framebuffer->getWidth(), framebuffer->getHeight());
-	
-	PixelData temp;
-	temp.sampleCount = 0;
-	for (size_t i = 0; i < MSAA_TYPE; i++)
-	{
-		temp.subpixels[i].valid = false;
-		temp.subpixels[i].color = Color::Make(Color::Black);
-		temp.subpixels[i].sampleCount = 0;
-		temp.subpixels[i].z = std::numeric_limits<float>::infinity();
-	}
-
-	gBuffer->clear(temp);
 }
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
@@ -132,7 +106,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		{
 			for (int y = (int)aabbMin.y(); y <= (int)aabbMax.y(); y++)
 			{
-				auto& pixelData = gBuffer->referPixel(x, y);
+				auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
 				for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 				{
@@ -184,11 +158,11 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 	}
 
 	// 延迟渲染
-	for (int x = 0; x < gBuffer->getWidth(); x++)
+	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{
-		for (int y = 0; y < gBuffer->getHeight(); y++)
+		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
-			auto& pixelData = gBuffer->referPixel(x, y);
+			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
 			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 			{
@@ -212,16 +186,16 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 				colorTemp += pixelData.subpixels[subpixelIndex].color;
 			}
 			colorTemp /= MSAA_TYPE;
-			framebuffer->putPixel(x, y, Color::Make(colorTemp));
+			framebuffer->colorBuffer.putPixel(x, y, Color::Make(colorTemp));
 		}
 	}
 
 	// 清理 Z 缓存
-	for (int x = 0; x < gBuffer->getWidth(); x++)
+	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{
-        for (int y = 0; y < gBuffer->getHeight(); y++)
+		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
-			auto& pixelData = gBuffer->referPixel(x, y);
+			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
             for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 			{
