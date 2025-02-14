@@ -25,6 +25,7 @@ public:
 		Eigen::Vector2f vectorMotion;
 
 		v2f v2f;
+		bool valid;
 	};
 
 	struct PixelData

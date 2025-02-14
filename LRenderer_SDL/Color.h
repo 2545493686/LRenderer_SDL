@@ -19,6 +19,15 @@ public:
 	static const uint32_t Gray = 0xFF808080;
 	static const uint32_t LightGray = 0xFFD3D3D3;
 
+	EIGEN_ALWAYS_INLINE static Eigen::Vector4f Make(uint32_t color)
+	{
+        float a = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
+		float r = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
+        float g = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
+        float b = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
+        return Eigen::Vector4f(r, g, b, a);
+	}
+
 	EIGEN_ALWAYS_INLINE static uint32_t Make(float color)
 	{
 		return Make(color, color, color, 1.0f);

@@ -77,7 +77,7 @@ Scene* CreateScene()
     Texture* uvTex = TextureLoader::LoadPNG("assets\\texture.png");;
 
     // 天空盒
-
+    Cubemap* skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
 
 #pragma endregion
 
@@ -97,9 +97,15 @@ Scene* CreateScene()
 
     meshRenderer->mesh = cubeMesh;
 
+    // 默认着色器
     UnlitShader* meshShader = new UnlitShader();
     meshShader->tex1 = uvTex;
-	meshRenderer->shader = meshShader;
+
+    // Cubemap 测试用着色器
+    CubemapShader* skyboxShader = new CubemapShader();
+    skyboxShader->cubemap = skybox;
+
+	meshRenderer->shader = skyboxShader;
     cube->AddComponent(meshRenderer);
 #pragma endregion
 

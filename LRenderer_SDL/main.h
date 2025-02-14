@@ -29,6 +29,9 @@
 #include "MeshRenderer.h"
 #include "Texture.h"
 #include "TextureLoader.h"
+#include "Cubemap.h"
+#include "CubemapLoader.h"
+#include "CubemapShader.h"
 
 void Draw(Framebuffer* framebuffer, Scene* scene);
 Scene* CreateScene();

@@ -110,6 +110,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>Default</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\vcpkg_installed\x64-windows\include\OpenEXR;$(SolutionDir)\vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,7 +126,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions> /utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\vcpkg_installed\x64-windows\include\OpenEXR;$(SolutionDir)\vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,6 +147,7 @@
     <None Include="..\.gitignore" />
     <None Include="..\vcpkg-configuration.json" />
     <None Include="..\vcpkg.json" />
+    <None Include="assets\skybox_default.exr" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
@@ -153,6 +155,9 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="CubemapShader.cpp" />
+    <ClCompile Include="Cubemap.cpp" />
+    <ClCompile Include="CubemapLoader.cpp" />
     <ClCompile Include="EnvVariable.cpp" />
     <ClCompile Include="EnvVariableCreater.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
@@ -166,7 +171,6 @@
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TextureCreater.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="main.cpp" />
@@ -180,6 +184,9 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="CubemapShader.h" />
+    <ClInclude Include="Cubemap.h" />
+    <ClInclude Include="CubemapLoader.h" />
     <ClInclude Include="EnvVariable.h" />
     <ClInclude Include="EnvVariableCreater.h" />
     <ClInclude Include="Framebuffer.h" />
@@ -193,7 +200,6 @@
     <ClInclude Include="Random.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureCreater.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="main.h" />

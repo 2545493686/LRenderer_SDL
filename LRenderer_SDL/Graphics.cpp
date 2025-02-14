@@ -31,6 +31,8 @@ void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 	temp.sampleCount = 0;
 	for (size_t i = 0; i < MSAA_TYPE; i++)
 	{
+		temp.subpixels[i].valid = false;
+		temp.subpixels[i].color = Color::Make(Color::Black);
 		temp.subpixels[i].sampleCount = 0;
 		temp.subpixels[i].z = std::numeric_limits<float>::infinity();
 	}
@@ -56,6 +58,8 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		v.uv3 = mesh->uv3[i];
 
 		v2fTemp[i] = shader->vertex(v);
+		
+		assert(v2fTemp[i].vertex.w() != 0);
 	}
 
 	static auto provider = Random::InSquare(0.5);
@@ -119,6 +123,11 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		Eigen::Vector2f aabbMax
 			= screenPosTemp[0].cwiseMax(screenPosTemp[1]).cwiseMax(screenPosTemp[2]);
 
+		assert(aabbMin.x() > 0);
+		assert(aabbMin.y() > 0);
+		assert(aabbMax.x() > 0);
+        assert(aabbMax.y() > 0);
+
 		for (int x = (int)aabbMin.x(); x <= (int)aabbMax.x(); x++)
 		{
 			for (int y = (int)aabbMin.y(); y <= (int)aabbMax.y(); y++)
@@ -167,6 +176,8 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					}
 
 					subpixel.v2f = v2f;
+					
+					subpixel.valid = true;
 				}
 			}
 		}
@@ -182,6 +193,11 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
+
+				if (!subpixel.valid)
+				{
+					continue;
+				}
 
 				auto target = shader->fragment(subpixel.v2f);
 
@@ -210,8 +226,15 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
             for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
+				
+				if (!subpixel.valid)
+				{
+					continue;
+				}
+
 				subpixel.z = std::numeric_limits<float>::infinity();
 				subpixel.sampleCount++;
+				subpixel.valid = false;
 
 				if (x == 0 && y == 0 && subpixelIndex == 0)
 				{

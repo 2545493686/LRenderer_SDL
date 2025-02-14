@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Eigen/Dense"
 #include "EnvVariable.h"
+#include "ShaderUtils.h"
 
 struct appdata
 {
