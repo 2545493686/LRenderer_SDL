@@ -14,5 +14,11 @@ public:
 	{
 		return context->modelToClipMatrix * vertex;
 	}
+
+	static EIGEN_ALWAYS_INLINE
+	Eigen::Vector4f ToWorldPos(const EnvVariable* context, Eigen::Vector4f vertex)
+	{
+		return context->modelMatrix * vertex;
+	}
 };
 

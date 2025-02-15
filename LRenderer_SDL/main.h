@@ -33,5 +33,6 @@
 #include "CubemapLoader.h"
 #include "CubemapShader.h"
 
+void LoadAssets();
 void Draw(Framebuffer* framebuffer, Scene* scene);
 Scene* CreateScene();

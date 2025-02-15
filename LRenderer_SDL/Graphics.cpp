@@ -1,6 +1,7 @@
 ﻿#include "Graphics.h"
 
 Framebuffer* Graphics::framebuffer = nullptr;
+Mesh* Graphics::skyboxMesh = nullptr;
 
 const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
 	Eigen::Vector2f(-0.25f, 0.25f),
@@ -12,6 +13,24 @@ const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
 	Graphics::framebuffer = framebuffer;
+
+	// 必要的初始化
+	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
+	{
+		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
+		{
+			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+
+			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			{
+				auto& subpixel = pixelData.subpixels[subpixelIndex];
+
+                subpixel.color = Color::Make(Color::Black);
+				subpixel.valid = false;
+				subpixel.z = std::numeric_limits<float>::max();
+			}
+		}
+	}
 }
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
@@ -26,10 +45,22 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 	for (size_t i = 0; i < mesh->verticesCount; i++)
 	{
 		v.vertex << mesh->vertices[i], 1.0f;
-		v.uv0 = mesh->uv0[i];
-		v.uv1 = mesh->uv1[i];
-		v.uv2 = mesh->uv2[i];
-		v.uv3 = mesh->uv3[i];
+		if (mesh->uv0)
+		{
+			v.uv0 = mesh->uv0[i];
+		}
+		if (mesh->uv1)
+		{
+			v.uv1 = mesh->uv1[i];
+		}
+		if (mesh->uv2)
+		{
+			v.uv2 = mesh->uv2[i];
+		}
+		if (mesh->uv3)
+		{
+			v.uv3 = mesh->uv3[i];
+		}
 
 		v2fTemp[i] = shader->vertex(v);
 		
@@ -92,15 +123,22 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		//	Color::LightGray);
 #pragma endregion
 
-		Eigen::Vector2f aabbMin
-			= screenPosTemp[0].cwiseMin(screenPosTemp[1]).cwiseMin(screenPosTemp[2]);
-		Eigen::Vector2f aabbMax
-			= screenPosTemp[0].cwiseMax(screenPosTemp[1]).cwiseMax(screenPosTemp[2]);
+		Eigen::Vector2i aabbMin
+			= screenPosTemp[0]
+				.cwiseMin(screenPosTemp[1])
+				.cwiseMin(screenPosTemp[2])
+				.cast<int>();
 
-		assert(aabbMin.x() > 0);
-		assert(aabbMin.y() > 0);
-		assert(aabbMax.x() > 0);
-        assert(aabbMax.y() > 0);
+		aabbMin = aabbMin.cwiseMax(Eigen::Vector2i(0, 0));
+
+		Eigen::Vector2i aabbMax
+			= screenPosTemp[0]
+				.cwiseMax(screenPosTemp[1])
+				.cwiseMax(screenPosTemp[2])
+				.cast<int>();
+
+		aabbMax = aabbMax.cwiseMin(
+			Eigen::Vector2i(framebuffer->getWidth() - 1, framebuffer->getHeight() - 1));
 
 		for (int x = (int)aabbMin.x(); x <= (int)aabbMax.x(); x++)
 		{
@@ -125,6 +163,11 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					auto&subpixel = pixelData.subpixels[subpixelIndex];
 
 					float zt = PCI::InterpolationZ(barycentric, z);
+
+					if (zt < 0)
+					{
+						continue;
+					}
 
 					if (zt > subpixel.z)
 					{
@@ -157,7 +200,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		}
 	}
 
-	// 延迟渲染
+	// 渲染
 	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
@@ -173,24 +216,12 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					continue;
 				}
 
-				auto target = shader->fragment(subpixel.v2f);
-
-				auto sampleCount = subpixel.sampleCount;
-				subpixel.color *= (sampleCount) / float(sampleCount + 1);
-				subpixel.color += target / float(sampleCount + 1);
+				subpixel.color = shader->fragment(subpixel.v2f);
 			}
-
-			Eigen::Vector4f colorTemp = Eigen::Vector4f::Zero();
-			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
-			{
-				colorTemp += pixelData.subpixels[subpixelIndex].color;
-			}
-			colorTemp /= MSAA_TYPE;
-			framebuffer->colorBuffer.putPixel(x, y, Color::Make(colorTemp));
 		}
 	}
 
-	// 清理 Z 缓存
+	// 清理 脏标记
 	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
@@ -200,24 +231,100 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
             for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
-				
-				if (!subpixel.valid)
-				{
-					continue;
-				}
-
-				subpixel.z = std::numeric_limits<float>::infinity();
-				subpixel.sampleCount++;
 				subpixel.valid = false;
-
-				if (x == 0 && y == 0 && subpixelIndex == 0)
-				{
-					spdlog::info("subpixel.sampleCount: {}", subpixel.sampleCount);
-				}
 			}
 		}
 	}
 
 	delete context;
+}
+
+void Graphics::DrawSkybox(Shader* shader)
+{
+	if (skyboxMesh == nullptr)
+	{
+		CreateSkyboxMesh();
+	}
+
+	Eigen::Vector4f points[] = {
+		Eigen::Vector4f(-1.0f, -1.0f, -1.0f, -1.0f) * Camera::main->zFar,
+		Eigen::Vector4f(1.0f, -1.0f, -1.0f, -1.0f) * Camera::main->zFar,
+		Eigen::Vector4f(1.0f, 1.0f, -1.0f, -1.0f) * Camera::main->zFar,
+		Eigen::Vector4f(-1.0f, 1.0f, -1.0f, -1.0f) * Camera::main->zFar
+	};
+
+	auto clipToWorld = Camera::main->GetClipToWorldMatrix();
+	for (int i = 0; i < 4; i++)
+	{
+        skyboxMesh->vertices[i] = (clipToWorld * points[i]).head<3>();
+	}
+
+	DrawMesh(skyboxMesh, Eigen::Matrix4f::Identity(), shader);
+}
+
+void Graphics::DrawTAA()
+{
+	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
+	{
+		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
+		{
+			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+			auto& taaData = framebuffer->taaBuffer.referPixel(x, y);
+
+			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			{
+				auto& subpixel = pixelData.subpixels[subpixelIndex];
+				auto& taaSubpixel = taaData.subpixels[subpixelIndex];
+
+				auto sampleCount = taaSubpixel.sampleCount;
+
+				subpixel.color = subpixel.color / float(sampleCount + 1)
+					+ taaSubpixel.historyColor * (sampleCount) / float(sampleCount + 1);
+				
+				taaSubpixel.historyColor = subpixel.color;
+				taaSubpixel.sampleCount++;
+			}
+		}
+	}
+}
+
+void Graphics::MergeSubpixels()
+{
+	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
+	{
+		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
+		{
+			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+
+			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			{
+				auto& subpixel = pixelData.subpixels[subpixelIndex];
+
+				Eigen::Vector4f colorTemp = Eigen::Vector4f::Zero();
+				for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+				{
+					auto& subpixel = pixelData.subpixels[subpixelIndex];
+					colorTemp += subpixel.color;
+				}
+
+				colorTemp /= MSAA_TYPE;
+				framebuffer->colorBuffer.putPixel(x, y, Color::Make(colorTemp));
+			}
+		}
+	}
+}
+
+void Graphics::CreateSkyboxMesh()
+{
+	skyboxMesh = new Mesh();
+	
+	skyboxMesh->vertices = new Eigen::Vector3f[4];
+	skyboxMesh->verticesCount = 4;
+
+	skyboxMesh->edges = new int[6] {
+		0, 1, 2,
+		2, 3, 0
+	};
+	skyboxMesh->edgesCount = 6;
 }
 

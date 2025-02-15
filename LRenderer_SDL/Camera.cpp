@@ -4,10 +4,10 @@ Camera* Camera::main = nullptr;
 
 Camera::Camera(Transform* transform)
 {
-	if (Camera::main == nullptr)
+	if (this->main == nullptr)
 	{
-		Camera::main = this;
+		this->main = this;
 	}
 
-	Camera::transform = transform;
+	this->transform = transform;
 }

@@ -9,5 +9,7 @@ EnvVariable* EnvVariableCreater::CreateEnvVariable(const Eigen::Matrix4f& modelM
 
 	context->modelToClipMatrix = context->frustumMatrix * context->viewMatrix * context->modelMatrix;
 
+	context->cameraWorldPos = Camera::main->transform->position;
+
 	return context;
 }

@@ -64,9 +64,7 @@ T Buffer<T>::getPixel(int x, int y)
 template<typename T>
 void Buffer<T>::putPixel(int x, int y, T color)
 {
-    if (x >= 0 && x < width && y >= 0 && y < height) {
-        frameBuffer[y * width + x] = color;
-    }
+    frameBuffer[y * width + x] = color;
 }
 
 // DDA算法绘制直线 TODO：Bresenham
@@ -114,7 +112,6 @@ public:
 struct SubpixelData
 {
     Eigen::Vector4f color;
-    uint8_t sampleCount;
     float z;
 
     Eigen::Vector2f screenPosition;
@@ -129,37 +126,57 @@ struct SubpixelData
 
 struct PixelData
 {
+    SubpixelData subpixels[MSAA_TYPE];
+};
+
+struct TAASubpixelData
+{
+    Eigen::Vector4f historyColor;
+    uint8_t sampleCount;
+};
+
+struct TAAData
+{
     // TODO: 锚点颜色
-    uint16_t sampleCount;
     Eigen::Vector4f anchorColor;
 
-    SubpixelData subpixels[MSAA_TYPE];
+    TAASubpixelData subpixels[MSAA_TYPE];
 };
 
 class Framebuffer {
 public:
     Framebuffer(int width, int height) 
-        :   colorBuffer(width, height), 
-            pixelBuffer(width, height)
+        : colorBuffer(width, height),
+        pixelBuffer(width, height),
+        taaBuffer(width, height)
     {
         this->width = width;
         this->height = height;
 
-        PixelData temp;
-        temp.sampleCount = 0;
+#pragma region Init PixelBuffer
+        PixelData pixelTemp;
         for (size_t i = 0; i < MSAA_TYPE; i++)
         {
-            temp.subpixels[i].valid = false;
-            temp.subpixels[i].color = Color::Make(Color::Black);
-            temp.subpixels[i].sampleCount = 0;
-            temp.subpixels[i].z = std::numeric_limits<float>::infinity();
+            pixelTemp.subpixels[i].valid = false;
+            pixelTemp.subpixels[i].color = Color::Make(Color::Black);
+            pixelTemp.subpixels[i].z = std::numeric_limits<float>::infinity();
         }
+        pixelBuffer.clear(pixelTemp);
+#pragma endregion
 
-        pixelBuffer.clear(temp);
+#pragma region Init TAABuffer
+        TAAData taaTemp;
+        for (size_t i = 0; i < MSAA_TYPE; i++)
+        {
+            taaTemp.subpixels[i].sampleCount = 0;
+        }
+        pixelBuffer.clear(pixelTemp);
+#pragma endregion
     }
 
     Colorbuffer colorBuffer;
     Buffer<PixelData> pixelBuffer;
+    Buffer<TAAData> taaBuffer;
     
     int getWidth() const { return width; }
     int getHeight() const { return height; }

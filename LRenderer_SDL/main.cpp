@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
 
     Framebuffer *framebuffer = new Framebuffer(WIDTH, HEIGHT);
 
+    LoadAssets();
     Scene *scene = CreateScene();
 
     int frameCount = 0;
@@ -69,21 +70,20 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+Mesh* cubeMesh;
+Texture* uvTex;
+Cubemap* skybox;
+
+void LoadAssets()
+{
+    cubeMesh = MeshLoader::Load("assets\\cube.fbx");
+    uvTex = TextureLoader::LoadPNG("assets\\texture.png");
+    skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
+}
+
 Scene* CreateScene()
 {
 	Scene *scene = new Scene();
-
-#pragma region 载入外部文件
-
-    // cube
-
-    // texture
-    Texture* uvTex = TextureLoader::LoadPNG("assets\\texture.png");;
-
-    // 天空盒
-    Cubemap* skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
-
-#pragma endregion
 
 #pragma region 立方体
     GameObject *cube = new GameObject();
@@ -105,11 +105,7 @@ Scene* CreateScene()
     UnlitShader* meshShader = new UnlitShader();
     meshShader->tex1 = uvTex;
 
-    // Cubemap 测试用着色器
-    CubemapShader* skyboxShader = new CubemapShader();
-    skyboxShader->cubemap = skybox;
-
-	meshRenderer->shader = skyboxShader;
+	meshRenderer->shader = meshShader;
     cube->AddComponent(meshRenderer);
 #pragma endregion
 
@@ -121,9 +117,9 @@ Scene* CreateScene()
 
 void Draw(Framebuffer *framebuffer, Scene *scene)
 {
-	Transform *cameraTransform = new Transform();
-	Camera *camera = new Camera(cameraTransform);
-	camera->aspect = WIDTH / (float)HEIGHT;
+	static Transform *cameraTransform = new Transform();
+    static Camera *camera = new Camera(cameraTransform);
+    camera->aspect = WIDTH / (float)HEIGHT;
 
     //framebuffer->colorBuffer.clear(Color::Black); // 黑色背景
     Graphics::SetFramebuffer(framebuffer);
@@ -141,4 +137,12 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
         Graphics::DrawMesh(renderer->mesh, transform->GetModelMatrix(), renderer->shader);
     }
+
+    static CubemapShader* skyboxShader = new CubemapShader();
+    skyboxShader->cubemap = skybox;
+    Graphics::DrawSkybox(skyboxShader);
+
+    Graphics::DrawTAA();
+
+    Graphics::MergeSubpixels();
 }

@@ -10,4 +10,6 @@ public:
 	Eigen::Matrix4f frustumMatrix;
 
 	Eigen::Matrix4f modelToClipMatrix;
+
+	Eigen::Vector3f cameraWorldPos;
 };

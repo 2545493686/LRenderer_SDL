@@ -16,6 +16,8 @@ public:
 	float zNear = 0.1f;
 	float zFar = 50;
 
+	Transform* transform;
+
 	Camera(Transform* transform);
 	
 	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const
@@ -44,7 +46,11 @@ public:
 		return projection;
 	}
 
-private:
-	Transform *transform;
+	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetClipToWorldMatrix() const
+	{
+		auto m = GetFrustumMatrix() * GetViewMatrix();
+        return m.inverse();
+	}
+
 };
 
