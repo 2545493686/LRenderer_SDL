@@ -41,7 +41,7 @@ public:
 		projection << nSize / aspect, 0, 0, 0,
 			0, nSize, 0, 0,
 			0, 0, (zFar + zNear) / (zFar - zNear), -2 * zFar * zNear / (zFar - zNear),
-			0, 0, -1, 0;
+			0, 0, 1, 0;
 
 		return projection;
 	}

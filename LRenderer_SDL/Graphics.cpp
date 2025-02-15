@@ -85,7 +85,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		for (size_t j = 0; j < 3; j++)
 		{
 			clipPosTemp[j] = v2fTemp[indexes[j]].vertex;
-			z[j] = -clipPosTemp[j].w();
+			z[j] = clipPosTemp[j].w();
 			//std::cout << clipPosTemp[j] << std::endl << std::endl;
 		}
 
@@ -247,10 +247,10 @@ void Graphics::DrawSkybox(Shader* shader)
 	}
 
 	Eigen::Vector4f points[] = {
-		Eigen::Vector4f(-1.0f, -1.0f, -1.0f, -1.0f) * Camera::main->zFar,
-		Eigen::Vector4f(1.0f, -1.0f, -1.0f, -1.0f) * Camera::main->zFar,
-		Eigen::Vector4f(1.0f, 1.0f, -1.0f, -1.0f) * Camera::main->zFar,
-		Eigen::Vector4f(-1.0f, 1.0f, -1.0f, -1.0f) * Camera::main->zFar
+		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f) * Camera::main->zFar,
+		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f) * Camera::main->zFar,
+		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f) * Camera::main->zFar,
+		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f) * Camera::main->zFar
 	};
 
 	auto clipToWorld = Camera::main->GetClipToWorldMatrix();

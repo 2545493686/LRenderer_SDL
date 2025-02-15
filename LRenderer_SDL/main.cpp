@@ -90,7 +90,7 @@ Scene* CreateScene()
 
 #pragma region Transform
     Transform* meshTransform = new Transform();
-    meshTransform->position = Eigen::Vector3f(0, 0, 10);
+    meshTransform->position = Eigen::Vector3f(2, 1, 10);
     meshTransform->scale = Eigen::Vector3f(1, 1, 1);
     meshTransform->Rotate(30, 0, 0);
     cube->AddComponent(meshTransform);
@@ -141,8 +141,10 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     static CubemapShader* skyboxShader = new CubemapShader();
     skyboxShader->cubemap = skybox;
     Graphics::DrawSkybox(skyboxShader);
-
+    
     Graphics::DrawTAA();
-
     Graphics::MergeSubpixels();
+
+    framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 
+        Eigen::Vector2f(40, 30), Color::Yellow);
 }

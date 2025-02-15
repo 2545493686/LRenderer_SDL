@@ -52,18 +52,21 @@ void Buffer<T>::clear(T color)
 template<typename T>
 T& Buffer<T>::referPixel(int x, int y)
 {
+    y = height - y - 1;
     return frameBuffer[y * width + x];
 }
 
 template<typename T>
 T Buffer<T>::getPixel(int x, int y)
 {
+    y = height - y - 1;
     return frameBuffer[y * width + x];
 }
 
 template<typename T>
 void Buffer<T>::putPixel(int x, int y, T color)
 {
+    y = height - y - 1;
     frameBuffer[y * width + x] = color;
 }
 
