@@ -76,7 +76,6 @@ Scene* CreateScene()
 #pragma region 载入外部文件
 
     // cube
-    Mesh *cubeMesh = MeshLoader::Load("assets\\cube.fbx");
 
     // texture
     Texture* uvTex = TextureLoader::LoadPNG("assets\\texture.png");;
