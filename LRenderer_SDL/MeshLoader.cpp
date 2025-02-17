@@ -28,10 +28,10 @@ Mesh* MeshLoader::CovertAIMesh(const aiMesh* aiMesh)
 	// 获取顶点
 	for (size_t i = 0; i < aiMesh->mNumVertices; i++)
 	{
-		mesh->vertices[i] = Eigen::Vector3f(
+		mesh->vertices[i] <<  
 			aiMesh->mVertices[i].x,
 			aiMesh->mVertices[i].y,
-			aiMesh->mVertices[i].z);
+			aiMesh->mVertices[i].z;
 	}
 
 	// 获取边
@@ -53,12 +53,30 @@ Mesh* MeshLoader::CovertAIMesh(const aiMesh* aiMesh)
 		{
 			for (size_t j = 0; j < mesh->verticesCount; j++)
 			{
-				(*(mesh->uvs[i]))[j] = Eigen::Vector2f(
+				(*(mesh->uvs[i]))[j] << 
 					aiMesh->mTextureCoords[i][j].x,
-					aiMesh->mTextureCoords[i][j].y);
+					aiMesh->mTextureCoords[i][j].y;
 			}
 		}
 	}
+
+	// 获取法线
+	mesh->normals = new Eigen::Vector3f[mesh->verticesCount];
+	if (aiMesh->mNormals)
+	{
+		for (size_t i = 0; i < aiMesh->mNumVertices; i++)
+		{
+			mesh->normals[i] << 
+				aiMesh->mNormals[i].x, 
+				aiMesh->mNormals[i].y,
+				aiMesh->mNormals[i].z;
+		}
+	}
+	else
+	{
+		// TODO: 通过面计算法线，必要时需要新增顶点
+	}
+
 
 	return mesh;
 }

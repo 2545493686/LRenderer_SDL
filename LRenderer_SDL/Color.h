@@ -18,8 +18,9 @@ public:
 	static const uint32_t Magenta = 0xFFFF00FF;
 	static const uint32_t Gray = 0xFF808080;
 	static const uint32_t LightGray = 0xFFD3D3D3;
+	static const uint32_t LightYellow = 0xFFFFFF99;
 
-	EIGEN_ALWAYS_INLINE static Eigen::Vector4f Make(uint32_t color)
+	EIGEN_ALWAYS_INLINE static Eigen::Vector4f MakeVector(uint32_t color)
 	{
         float a = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
 		float r = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
@@ -27,6 +28,12 @@ public:
         float b = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
         return Eigen::Vector4f(r, g, b, a);
 	}
+
+	EIGEN_ALWAYS_INLINE static Eigen::Vector4f MakeVector(float r, float g, float b, float a)
+	{
+        return Eigen::Vector4f(r, g, b, a);
+	}
+
 
 	EIGEN_ALWAYS_INLINE static uint32_t Make(float color)
 	{
@@ -45,10 +52,10 @@ public:
 
 	EIGEN_ALWAYS_INLINE static uint32_t Make(float r, float g, float b, float a)
 	{
-		return (static_cast<uint32_t>(MathUtils::Clamp<float>(a * 255.0f, 0.0f, 255.0f)) << 24)
-			| (static_cast<uint32_t>(MathUtils::Clamp<float>(r * 255.0f, 0.0f, 255.0f)) << 16)
-			| (static_cast<uint32_t>(MathUtils::Clamp<float>(g * 255.0f, 0.0f, 255.0f)) << 8)
-			| (static_cast<uint32_t>(MathUtils::Clamp<float>(b * 255.0f, 0.0f, 255.0f)));
+		return (MathUtils::Clamp<int>(static_cast<uint32_t>(a * 255.0f), 0, 255) << 24)
+		| (MathUtils::Clamp<int>(static_cast<uint32_t>(r * 255.0f), 0, 255) << 16)
+		| (MathUtils::Clamp<int>(static_cast<uint32_t>(g * 255.0f), 0, 255) << 8)
+		| (MathUtils::Clamp<int>(static_cast<uint32_t>(b * 255.0f), 0, 255));
 	}
 };
 

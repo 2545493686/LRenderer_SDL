@@ -71,12 +71,14 @@ int main(int argc, char* argv[]) {
 }
 
 Mesh* cubeMesh;
+Mesh* sphereMesh;
 Texture* uvTex;
 Cubemap* skybox;
 
 void LoadAssets()
 {
     cubeMesh = MeshLoader::Load("assets\\cube.fbx");
+    sphereMesh = MeshLoader::Load("assets\\sphere.fbx");
     uvTex = TextureLoader::LoadPNG("assets\\texture.png");
     skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
 }
@@ -90,7 +92,7 @@ Scene* CreateScene()
 
 #pragma region Transform
     Transform* meshTransform = new Transform();
-    meshTransform->position = Eigen::Vector3f(2, 1, 10);
+    meshTransform->position = Eigen::Vector3f(2, 0, 10);
     meshTransform->scale = Eigen::Vector3f(1, 1, 1);
     meshTransform->Rotate(30, 0, 0);
     cube->AddComponent(meshTransform);
@@ -102,7 +104,7 @@ Scene* CreateScene()
     meshRenderer->mesh = cubeMesh;
 
     // 默认着色器
-    UnlitShader* meshShader = new UnlitShader();
+    BlinnPhongShader* meshShader = new BlinnPhongShader();
     meshShader->tex1 = uvTex;
 
 	meshRenderer->shader = meshShader;
@@ -110,6 +112,32 @@ Scene* CreateScene()
 #pragma endregion
 
     scene->AddGameObject(cube);
+#pragma endregion
+
+
+#pragma region 球体
+    GameObject* sphere = new GameObject();
+
+#pragma region Transform
+    Transform* sphereTransform = new Transform();
+    sphereTransform->position = Eigen::Vector3f(-2, 0, 10);
+    sphereTransform->scale = Eigen::Vector3f(1, 1, 1);
+    sphere->AddComponent(sphereTransform);
+#pragma endregion
+
+#pragma region MeshRenderer
+    MeshRenderer* sphereRenderer = new MeshRenderer();
+    sphereRenderer->mesh = sphereMesh;
+
+    // 默认着色器
+    BlinnPhongShader* sphereShader = new BlinnPhongShader();
+    sphereShader->tex1 = uvTex;
+
+    sphereRenderer->shader = sphereShader;
+    sphere->AddComponent(sphereRenderer);
+#pragma endregion
+
+    scene->AddGameObject(sphere);
 #pragma endregion
 
     return scene;
@@ -123,7 +151,12 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
     //framebuffer->colorBuffer.clear(Color::Black); // 黑色背景
     Graphics::SetFramebuffer(framebuffer);
-    
+
+    static DirectionalLight* light = new DirectionalLight();
+    light->direction = Eigen::Vector4f(-1, -1, 2, 0);
+
+    Graphics::SetLight(light);
+
     for (auto gameObject : scene->GetGameObjects())
     {
         MeshRenderer* renderer = gameObject->GetComponent<MeshRenderer>();

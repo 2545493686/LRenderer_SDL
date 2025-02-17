@@ -4,11 +4,9 @@
 class Mesh
 {
 public:
-	Eigen::Vector3f *vertices = nullptr;
 	int verticesCount;
-
-	int *edges = nullptr;
-	int edgesCount;
+	Eigen::Vector3f *vertices = nullptr;
+	Eigen::Vector3f* normals = nullptr;
 
 	Eigen::Vector2f* uv0 = nullptr;
 	Eigen::Vector2f* uv1 = nullptr;
@@ -18,5 +16,8 @@ public:
 	Eigen::Vector2f** uvs[4] = {
 		&uv0, &uv1, &uv2, &uv3,
 	};
+
+	int edgesCount;
+	int *edges = nullptr;
 };
 

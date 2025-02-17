@@ -6,29 +6,50 @@
 #include "Random.h"
 #include "spdlog/spdlog.h"
 #include "GraphicsSettings.h"
+#include "DirectionalLight.h"
+#include "Camera.h"
+#include "EnvVariableCreater.h"
 
 class Graphics
 {
+	friend class EnvVariableCreater;
+
 public:
 	// 输出
 	static void SetFramebuffer(Framebuffer *framebuffer);
+	static void SetLight(DirectionalLight *light);
+	
 	static void DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
 	static void DrawSkybox(Shader* shader);
 	static void DrawTAA();
 	static void MergeSubpixels();
 
 private:
+	struct LightsList
+	{
+		std::vector<DirectionalLight *> directionalLight;
+
+	public:
+		void Clear()
+		{
+			directionalLight.clear();
+		}
+	};
+
 	// 远裁剪平面上的平面网格，顶点0从左下角，依次逆时针方向排布4个顶点
 	static Mesh* skyboxMesh;
 
 	static Framebuffer* framebuffer;
 	static const Eigen::Vector2f subpixelBiasX4[4];
 
+	static LightsList lightsList;
+
 	static Eigen::Vector2f GetSubpixelPointBias(int x, int y, int i);
 	
 	// 在远裁剪平面绘制一个平面网格
 	static void CreateSkyboxMesh();
 };
+
 
 EIGEN_ALWAYS_INLINE Eigen::Vector2f Graphics::GetSubpixelPointBias(int x, int y, int subpixelIndex)
 {

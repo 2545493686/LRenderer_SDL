@@ -1,16 +1,13 @@
 ﻿#pragma once
 #include <vector>
 #include <iostream>
-#include "Eigen/Dense"
-#include "algorithm"
+#include <Eigen/Dense>
+#include <algorithm>
 
-#include "Mesh.h"
 #include "Color.h"
-#include "Shader.h"
-#include "EnvVariableCreater.h"
 #include "MathUtils.h"
-#include "Shader.h"
 #include "GraphicsSettings.h"
+#include "Shader.h"
 
 template<typename T>
 class Buffer {
@@ -146,6 +143,11 @@ struct TAAData
     TAASubpixelData subpixels[MSAA_TYPE];
 };
 
+
+template class Buffer<float>;
+template class Buffer<uint32_t>;
+
+
 class Framebuffer {
 public:
     Framebuffer(int width, int height) 
@@ -161,7 +163,7 @@ public:
         for (size_t i = 0; i < MSAA_TYPE; i++)
         {
             pixelTemp.subpixels[i].valid = false;
-            pixelTemp.subpixels[i].color = Color::Make(Color::Black);
+            pixelTemp.subpixels[i].color = Color::MakeVector(Color::Black);
             pixelTemp.subpixels[i].z = std::numeric_limits<float>::infinity();
         }
         pixelBuffer.clear(pixelTemp);
@@ -188,6 +190,3 @@ private:
     int width;
     int height;
 };
-
-template class Buffer<float>;
-template class Buffer<uint32_t>;

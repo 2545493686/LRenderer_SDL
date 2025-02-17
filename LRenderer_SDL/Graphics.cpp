@@ -1,7 +1,8 @@
 ﻿#include "Graphics.h"
 
-Framebuffer* Graphics::framebuffer = nullptr;
 Mesh* Graphics::skyboxMesh = nullptr;
+Framebuffer* Graphics::framebuffer = nullptr;
+Graphics::LightsList Graphics::lightsList;
 
 const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
 	Eigen::Vector2f(-0.25f, 0.25f),
@@ -10,9 +11,12 @@ const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
     Eigen::Vector2f(0.25f, -0.25f),
 };
 
+// 同时清楚 Graphics 状态
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
 	Graphics::framebuffer = framebuffer;
+
+	lightsList.Clear(); 
 
 	// 必要的初始化
 	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
@@ -25,12 +29,17 @@ void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
 
-                subpixel.color = Color::Make(Color::Black);
+                subpixel.color = Color::MakeVector(Color::Black);
 				subpixel.valid = false;
 				subpixel.z = std::numeric_limits<float>::max();
 			}
 		}
 	}
+}
+
+void Graphics::SetLight(DirectionalLight *light)
+{
+	lightsList.directionalLight.push_back(light);
 }
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
@@ -45,6 +54,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 	for (size_t i = 0; i < mesh->verticesCount; i++)
 	{
 		v.vertex << mesh->vertices[i], 1.0f;
+		
 		if (mesh->uv0)
 		{
 			v.uv0 = mesh->uv0[i];
@@ -60,6 +70,10 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		if (mesh->uv3)
 		{
 			v.uv3 = mesh->uv3[i];
+		}
+		if (mesh->normals)
+		{
+			v.normal << mesh->normals[i], 0.0f;
 		}
 
 		v2fTemp[i] = shader->vertex(v);
@@ -181,7 +195,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					v2f v2f;
 					v2f.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp);
 
-					for (size_t i = 0; i < 4; i++)
+					for (size_t i = 0; i < V2F_TEX_COUNT; i++)
 					{
 						Eigen::Vector4f texcoordTemp[3] = {
 							v2fTemp[indexes[0]].texcoords[i],
@@ -236,7 +250,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		}
 	}
 
-	delete context;
+	EnvVariableCreater::ClearEnvVariable(context);
 }
 
 void Graphics::DrawSkybox(Shader* shader)

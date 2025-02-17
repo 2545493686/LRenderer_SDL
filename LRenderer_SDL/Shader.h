@@ -2,10 +2,12 @@
 #include "Eigen/Dense"
 #include "EnvVariable.h"
 #include "ShaderUtils.h"
+#include "GraphicsSettings.h"
 
 struct appdata
 {
 	Eigen::Vector4f vertex;
+	Eigen::Vector4f normal;
 	Eigen::Vector2f uv0;
 	Eigen::Vector2f uv1;
 	Eigen::Vector2f uv2;
@@ -15,7 +17,7 @@ struct appdata
 struct v2f
 {
 	Eigen::Vector4f vertex;
-	Eigen::Vector4f texcoords[4];
+	Eigen::Vector4f texcoords[V2F_TEX_COUNT];
 };
 
 // 注意：任何着色器都不应该保留状态

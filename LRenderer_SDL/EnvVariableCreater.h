@@ -2,6 +2,7 @@
 
 #include "EnvVariable.h"
 #include "Camera.h"
+#include "Graphics.h"
 
 class EnvVariableCreater
 {
@@ -9,5 +10,6 @@ class EnvVariableCreater
 
 public:
 	static EnvVariable* CreateEnvVariable(const Eigen::Matrix4f& modelMatrix);
+	static void ClearEnvVariable(EnvVariable* context);
 };
 

@@ -152,18 +152,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Array.cpp" />
+    <ClCompile Include="BlinnPhongShader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="CubemapShader.cpp" />
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="CubemapLoader.cpp" />
+    <ClCompile Include="DirectionalLight.cpp" />
     <ClCompile Include="EnvVariable.cpp" />
     <ClCompile Include="EnvVariableCreater.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="GraphicsSettings.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="MeshLoader.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
@@ -183,18 +186,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Array.h" />
+    <ClInclude Include="BlinnPhongShader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="CubemapShader.h" />
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="CubemapLoader.h" />
+    <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="EnvVariable.h" />
     <ClInclude Include="EnvVariableCreater.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="GraphicsSettings.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="MeshRenderer.h" />

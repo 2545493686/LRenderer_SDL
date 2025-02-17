@@ -32,6 +32,8 @@
 #include "Cubemap.h"
 #include "CubemapLoader.h"
 #include "CubemapShader.h"
+#include "DirectionalLight.h"
+#include "BlinnPhongShader.h"
 
 void LoadAssets();
 void Draw(Framebuffer* framebuffer, Scene* scene);

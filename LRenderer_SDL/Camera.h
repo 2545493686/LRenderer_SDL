@@ -18,7 +18,7 @@ public:
 
 	Transform* transform;
 
-	Camera(Transform* transform);
+	explicit Camera(Transform* transform);
 	
 	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const
 	{
