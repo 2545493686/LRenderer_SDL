@@ -18,7 +18,8 @@ public:
 	// 输出
 	static void SetFramebuffer(Framebuffer *framebuffer);
 	static void SetLight(DirectionalLight *light);
-	
+	static void SetAmbientLightColor(Eigen::Vector4f color);
+
 	static void DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
 	static void DrawSkybox(Shader* shader);
 	static void DrawTAA();
@@ -35,6 +36,8 @@ private:
 			directionalLight.clear();
 		}
 	};
+
+	static Eigen::Vector4f ambientLightColor;
 
 	// 远裁剪平面上的平面网格，顶点0从左下角，依次逆时针方向排布4个顶点
 	static Mesh* skyboxMesh;

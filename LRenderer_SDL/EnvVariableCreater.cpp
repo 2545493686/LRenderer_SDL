@@ -25,6 +25,8 @@ EnvVariable* EnvVariableCreater::CreateEnvVariable(const Eigen::Matrix4f& modelM
 		data.intensity = light->intensity;
 	}
 
+	context->ambientLightColor = Graphics::ambientLightColor;
+
 	return context;
 }
 

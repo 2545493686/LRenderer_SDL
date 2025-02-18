@@ -174,6 +174,9 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     static CubemapShader* skyboxShader = new CubemapShader();
     skyboxShader->cubemap = skybox;
     Graphics::DrawSkybox(skyboxShader);
+
+    Eigen::Vector4f ambientLightColor = Color::MakeVector(Color::White) * 0.25f;
+    Graphics::SetAmbientLightColor(ambientLightColor);
     
     Graphics::DrawTAA();
     Graphics::MergeSubpixels();

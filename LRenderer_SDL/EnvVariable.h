@@ -21,4 +21,6 @@ public:
 
 	DirectionalLightLightData* directionalLightDatas;
 	int directionalLightCount;
+
+	Eigen::Vector4f ambientLightColor;
 };

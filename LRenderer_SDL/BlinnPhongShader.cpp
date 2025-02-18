@@ -16,10 +16,8 @@ Eigen::Vector4f BlinnPhongShader::fragment(const v2f& i)
     Eigen::Vector4f worldNormal = i.texcoords[1].normalized();
 
     Eigen::Vector4f baseColor = tex1->Sample(i.texcoords[0].x(), i.texcoords[0].y());
-    baseColor = baseColor.cwiseProduct(diffuse);
 
     Eigen::Vector4f diffuse = Eigen::Vector4f::Zero();
-
     for (size_t i = 0; i < context->directionalLightCount; i++)
     {
         auto & lightData = context->directionalLightDatas[i];
@@ -28,8 +26,11 @@ Eigen::Vector4f BlinnPhongShader::fragment(const v2f& i)
         Eigen::Vector4f color = lightData.color * diffuseIntensity;
         diffuse += color;
     }
+    diffuse = diffuse.cwiseProduct(this->diffuse);
 
-    baseColor = baseColor.cwiseProduct(diffuse);
+    Eigen::Vector4f color = diffuse + context->ambientLightColor;
 
-    return baseColor;
+    color = color.cwiseProduct(baseColor);
+
+    return color;
 }

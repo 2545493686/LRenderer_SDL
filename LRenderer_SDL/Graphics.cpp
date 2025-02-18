@@ -3,6 +3,7 @@
 Mesh* Graphics::skyboxMesh = nullptr;
 Framebuffer* Graphics::framebuffer = nullptr;
 Graphics::LightsList Graphics::lightsList;
+Eigen::Vector4f Graphics::ambientLightColor;
 
 const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
 	Eigen::Vector2f(-0.25f, 0.25f),
@@ -40,6 +41,11 @@ void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 void Graphics::SetLight(DirectionalLight *light)
 {
 	lightsList.directionalLight.push_back(light);
+}
+
+void Graphics::SetAmbientLightColor(Eigen::Vector4f color)
+{
+	ambientLightColor = color;
 }
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
