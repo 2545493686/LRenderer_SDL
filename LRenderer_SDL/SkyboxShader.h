@@ -1,6 +1,7 @@
 #pragma once
 #include "Shader.h"
 #include "Cubemap.h"
+#include "MathUtils.h"
 
 class SkyboxShader : public Shader
 {
