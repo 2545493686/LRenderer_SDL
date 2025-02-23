@@ -6,6 +6,16 @@
 class MathUtils
 {
 public:
+	EIGEN_ALWAYS_INLINE static Eigen::Vector4f Pow(Eigen::Vector4f v, float p)
+	{
+		Eigen::Vector4f result;
+		result.x() = std::pow(v.x(), p);
+        result.y() = std::pow(v.y(), p);
+        result.z() = std::pow(v.z(), p);
+        result.w() = std::pow(v.w(), p);
+        return result;
+	}
+
 	EIGEN_ALWAYS_INLINE static float Cross(Eigen::Vector2f p1, Eigen::Vector2f p2)
 	{
 		return p1.x() * p2.y() - p1.y() * p2.x();

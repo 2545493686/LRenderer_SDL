@@ -236,7 +236,8 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					continue;
 				}
 
-				subpixel.color = shader->fragment(subpixel.v2f);
+				auto color = shader->fragment(subpixel.v2f);
+				subpixel.color = MathUtils::Pow(color, 1 / 2.2f);
 			}
 		}
 	}

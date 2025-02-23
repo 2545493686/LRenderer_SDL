@@ -65,10 +65,10 @@ void CubemapLoader::LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap)
                 const int dstIndex = y * size + x;
 
                 faceData[dstIndex] = Eigen::Vector4f(
-                    pixelBuffer[4 * srcIndex + 0],
-                    pixelBuffer[4 * srcIndex + 1],
-                    pixelBuffer[4 * srcIndex + 2],
-                    pixelBuffer[4 * srcIndex + 3]
+                    std::pow(pixelBuffer[4 * srcIndex + 0], 2.2f),
+                    std::pow(pixelBuffer[4 * srcIndex + 1], 2.2f),
+                    std::pow(pixelBuffer[4 * srcIndex + 2], 2.2f),
+                    std::pow(pixelBuffer[4 * srcIndex + 3], 2.2f)
                 );
             }
         }

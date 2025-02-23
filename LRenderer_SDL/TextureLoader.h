@@ -34,7 +34,14 @@ private:
 				Uint32 pixel = row[x];
 				Uint8 r, g, b, a;
 				SDL_GetRGBA(pixel, convertedSurface->format, &r, &g, &b, &a);
-				tex->PutPixel(x, y, Eigen::Vector4f(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f));
+
+				Eigen::Vector4f color;
+				color.x() = std::pow(r / 255.0f, 2.2f);
+				color.y() = std::pow(g / 255.0f, 2.2f);
+                color.z() = std::pow(b / 255.0f, 2.2f);
+                color.w() = a / 255.0f;
+
+				tex->PutPixel(x, y, color);
 			}
 		}
 
