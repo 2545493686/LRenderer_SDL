@@ -111,10 +111,11 @@ public:
 
 struct SubpixelData
 {
+    // 定义采样点
+    Eigen::Vector2f screenPosition;
+
     Eigen::Vector4f color;
     float z;
-
-    Eigen::Vector2f screenPosition;
 
     // TODO: 运动向量
     Eigen::Vector4f worldPosition;
@@ -126,7 +127,7 @@ struct SubpixelData
 
 struct PixelData
 {
-    SubpixelData subpixels[MSAA_TYPE];
+    std::vector<SubpixelData> subpixels;
 };
 
 struct TAASubpixelData
@@ -158,24 +159,15 @@ public:
         this->width = width;
         this->height = height;
 
-#pragma region Init PixelBuffer
-        PixelData pixelTemp;
-        for (size_t i = 0; i < MSAA_TYPE; i++)
-        {
-            pixelTemp.subpixels[i].valid = false;
-            pixelTemp.subpixels[i].color = Color::MakeVector(Color::Black);
-            pixelTemp.subpixels[i].z = std::numeric_limits<float>::infinity();
-        }
-        pixelBuffer.clear(pixelTemp);
-#pragma endregion
-
 #pragma region Init TAABuffer
         TAAData taaTemp;
+        taaTemp.anchorColor = Color::MakeVector(Color::Black);
         for (size_t i = 0; i < MSAA_TYPE; i++)
         {
             taaTemp.subpixels[i].sampleCount = 0;
+            taaTemp.subpixels[i].historyColor = Color::MakeVector(Color::Black);
         }
-        pixelBuffer.clear(pixelTemp);
+        taaBuffer.clear(taaTemp);
 #pragma endregion
     }
 

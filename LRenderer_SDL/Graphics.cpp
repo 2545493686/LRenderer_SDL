@@ -5,37 +5,12 @@ Framebuffer* Graphics::framebuffer = nullptr;
 Graphics::LightsList Graphics::lightsList;
 Eigen::Vector4f Graphics::ambientLightColor;
 
-const Eigen::Vector2f Graphics::subpixelBiasX4[4] = {
-	Eigen::Vector2f(-0.25f, 0.25f),
-    Eigen::Vector2f(0.25f, 0.25f),
-    Eigen::Vector2f(-0.25f, -0.25f),
-    Eigen::Vector2f(0.25f, -0.25f),
-};
-
 // 同时清楚 Graphics 状态
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
 	Graphics::framebuffer = framebuffer;
 
 	lightsList.Clear(); 
-
-	// 必要的初始化
-	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
-	{
-		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
-		{
-			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
-
-			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
-			{
-				auto& subpixel = pixelData.subpixels[subpixelIndex];
-
-                subpixel.color = Color::MakeVector(Color::Black);
-				subpixel.valid = false;
-				subpixel.z = std::numeric_limits<float>::max();
-			}
-		}
-	}
 }
 
 void Graphics::SetLight(DirectionalLight *light)
@@ -86,9 +61,6 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		
 		assert(v2fTemp[i].vertex.w() != 0);
 	}
-
-	static auto provider = Random::InSquare(0.5);
-	const auto bias = provider.Pop();
 
 	// 遍历三角形
 	for (size_t i = 0; i < mesh->edgesCount / 3; i++)
@@ -166,10 +138,15 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 			{
 				auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
-				for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+				for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 				{
-					Eigen::Vector2f point = Eigen::Vector2f(x + 0.5f, y + 0.5f);
-					point += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
+					auto&subpixel = pixelData.subpixels[subpixelIndex];
+
+					Eigen::Vector2f point = subpixel.screenPosition;
+
+					// 外部生成
+					// Eigen::Vector2f point = Eigen::Vector2f(x + 0.5f, y + 0.5f);
+					// point += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
 
 					if (!MathUtils::InTriangle(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]))
 					{
@@ -179,8 +156,6 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 
 					Eigen::Vector3f barycentric =
 						MathUtils::Barycentric(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]);
-
-					auto&subpixel = pixelData.subpixels[subpixelIndex];
 
 					float zt = PCI::InterpolationZ(barycentric, z);
 
@@ -195,7 +170,6 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					}
 
 					subpixel.z = zt;
-					subpixel.screenPosition = point;
 
 					// TODO: 所有属性插值
 					v2f v2f;

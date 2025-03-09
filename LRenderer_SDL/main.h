@@ -38,3 +38,4 @@
 void LoadAssets();
 void Draw(Framebuffer* framebuffer, Scene* scene);
 Scene* CreateScene();
+Framebuffer* InitFramebuffer();

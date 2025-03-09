@@ -4,6 +4,22 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+const Eigen::Vector2f subpixelBiasX4[4] = {
+    Eigen::Vector2f(-0.25f, 0.25f),
+    Eigen::Vector2f(0.25f, 0.25f),
+    Eigen::Vector2f(-0.25f, -0.25f),
+    Eigen::Vector2f(0.25f, -0.25f),
+};
+
+EIGEN_ALWAYS_INLINE Eigen::Vector2f GetSubpixelPointBias(int x, int y, int subpixelIndex)
+{
+#if MSAA_TYPE == MSAA_X4
+    return subpixelBiasX4[subpixelIndex];
+#endif // MSAA_TYPE == MSAA_X4
+
+    throw std::exception("msaaCount is unknown type.");
+}
+
 int main(int argc, char* argv[]) {
 
     // 日志系统
@@ -34,7 +50,7 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
-    Framebuffer *framebuffer = new Framebuffer(WIDTH, HEIGHT);
+    Framebuffer *framebuffer = InitFramebuffer();
 
     LoadAssets();
     Scene *scene = CreateScene();
@@ -143,13 +159,57 @@ Scene* CreateScene()
     return scene;
 }
 
+// 初始化空间，定义每个像素4个采样点
+Framebuffer* InitFramebuffer()
+{
+    Framebuffer *framebuffer = new Framebuffer(WIDTH, HEIGHT);
+
+    for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
+    {
+        for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
+        {
+            auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+            pixelData.subpixels.resize(MSAA_TYPE);
+        }
+    }
+
+    return framebuffer;
+}
+
+
+void ClearFramebuffer(Framebuffer* framebuffer)
+{
+    static auto provider = Random::InSquare(0.5);
+    const auto bias = provider.Pop();
+
+    // 必要的初始化
+    for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
+    {
+        for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
+        {
+            auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+
+            for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
+            {
+                auto& subpixel = pixelData.subpixels[subpixelIndex];
+
+                subpixel.screenPosition = Eigen::Vector2f(x + 0.5f, y + 0.5f);
+                subpixel.screenPosition += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
+                subpixel.color = Color::MakeVector(Color::Black);
+                subpixel.valid = false;
+                subpixel.z = std::numeric_limits<float>::max();
+            }
+        }
+    }
+}
+
 void Draw(Framebuffer *framebuffer, Scene *scene)
 {
 	static Transform *cameraTransform = new Transform();
     static Camera *camera = new Camera(cameraTransform);
     camera->aspect = WIDTH / (float)HEIGHT;
 
-    //framebuffer->colorBuffer.clear(Color::Black); // 黑色背景
+    ClearFramebuffer(framebuffer);
     Graphics::SetFramebuffer(framebuffer);
 
     static DirectionalLight* light = new DirectionalLight();

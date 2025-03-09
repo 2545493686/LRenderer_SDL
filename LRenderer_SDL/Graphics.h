@@ -47,19 +47,9 @@ private:
 
 	static LightsList lightsList;
 
-	static Eigen::Vector2f GetSubpixelPointBias(int x, int y, int i);
-	
 	// 在远裁剪平面绘制一个平面网格
 	static void CreateSkyboxMesh();
 };
 
 
-EIGEN_ALWAYS_INLINE Eigen::Vector2f Graphics::GetSubpixelPointBias(int x, int y, int subpixelIndex)
-{
-#if MSAA_TYPE == MSAA_X4
-	return subpixelBiasX4[subpixelIndex];
-#endif // MSAA_TYPE == MSAA_X4
-
-	throw std::exception("msaaCount is unknown type.");
-}
 
