@@ -2,8 +2,14 @@
 
 Mesh* Graphics::skyboxMesh = nullptr;
 Framebuffer* Graphics::framebuffer = nullptr;
+Camera* Graphics::camera = nullptr;
 Graphics::LightsList Graphics::lightsList;
 Eigen::Vector4f Graphics::ambientLightColor;
+
+void Graphics::SetCamera(Camera* camera)
+{
+	Graphics::camera = camera;
+}
 
 // 同时清楚 Graphics 状态
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
@@ -25,7 +31,7 @@ void Graphics::SetAmbientLightColor(Eigen::Vector4f color)
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
 {
-	EnvVariable* context = EnvVariableCreater::CreateEnvVariable(modelMatrix);
+	EnvVariable* context = EnvVariableCreater::CreateEnvVariable(camera, modelMatrix);
 
 	shader->DrawInit(context);
 
@@ -201,7 +207,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		{
 			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
-			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
 
@@ -223,7 +229,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		{
 			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
-            for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+            for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
 				subpixel.valid = false;
@@ -242,13 +248,13 @@ void Graphics::DrawSkybox(Shader* shader)
 	}
 
 	Eigen::Vector4f points[] = {
-		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f) * Camera::main->zFar,
-		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f) * Camera::main->zFar,
-		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f) * Camera::main->zFar,
-		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f) * Camera::main->zFar
+		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f) * camera->zFar,
+		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f) * camera->zFar,
+		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f) * camera->zFar,
+		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f) * camera->zFar
 	};
 
-	auto clipToWorld = Camera::main->GetClipToWorldMatrix();
+	auto clipToWorld = camera->GetClipToWorldMatrix();
 	for (int i = 0; i < 4; i++)
 	{
         skyboxMesh->vertices[i] = (clipToWorld * points[i]).head<3>();

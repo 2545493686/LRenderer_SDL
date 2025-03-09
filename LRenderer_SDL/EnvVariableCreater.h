@@ -9,7 +9,7 @@ class EnvVariableCreater
 	EnvVariableCreater() = delete;
 
 public:
-	static EnvVariable* CreateEnvVariable(const Eigen::Matrix4f& modelMatrix);
+	static EnvVariable* CreateEnvVariable(Camera* camera, const Eigen::Matrix4f& modelMatrix);
 	static void ClearEnvVariable(EnvVariable* context);
 };
 

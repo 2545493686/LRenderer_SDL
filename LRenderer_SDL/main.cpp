@@ -206,8 +206,8 @@ void ClearFramebuffer(Framebuffer* framebuffer)
 void Draw(Framebuffer *framebuffer, Scene *scene)
 {
 	static Transform *cameraTransform = new Transform();
-    static Camera *camera = new Camera(cameraTransform);
-    camera->aspect = WIDTH / (float)HEIGHT;
+    static Camera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    Graphics::SetCamera(camera);
 
     ClearFramebuffer(framebuffer);
     Graphics::SetFramebuffer(framebuffer);

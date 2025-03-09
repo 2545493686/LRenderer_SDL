@@ -15,7 +15,7 @@ class Graphics
 	friend class EnvVariableCreater;
 
 public:
-	// 输出
+	static void SetCamera(Camera* camera);
 	static void SetFramebuffer(Framebuffer *framebuffer);
 	static void SetLight(DirectionalLight *light);
 	static void SetAmbientLightColor(Eigen::Vector4f color);
@@ -43,7 +43,7 @@ private:
 	static Mesh* skyboxMesh;
 
 	static Framebuffer* framebuffer;
-	static const Eigen::Vector2f subpixelBiasX4[4];
+	static Camera* camera;
 
 	static LightsList lightsList;
 

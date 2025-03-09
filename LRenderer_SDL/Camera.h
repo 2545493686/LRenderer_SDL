@@ -9,17 +9,39 @@
 class Camera : public Component
 {
 public:
-    static Camera* main;
-
-	float fov = 45;
 	float aspect = 1;
 	float zNear = 0.1f;
 	float zFar = 50;
 
 	Transform* transform;
+	explicit Camera(Transform* transform) 
+	{
+        this->transform = transform;
+	};
 
-	explicit Camera(Transform* transform);
-	
+	Camera(Transform* transform, float aspect) : Camera(transform)
+	{
+		this->aspect = aspect;
+	}
+
+	virtual Eigen::Matrix4f GetViewMatrix() const = 0;
+	virtual Eigen::Matrix4f GetFrustumMatrix() const = 0;
+	virtual Eigen::Matrix4f GetClipToWorldMatrix() const = 0;
+};
+
+class PerspectiveCamera : public Camera
+{
+public:
+	float fov = 45;
+
+	explicit PerspectiveCamera(Transform* transform) : Camera(transform)
+	{
+	}
+
+    PerspectiveCamera(Transform* transform, float aspect) : Camera(transform, aspect)
+	{
+	}
+
 	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const
 	{
 		Eigen::Affine3f affine = Eigen::Affine3f::Identity();
@@ -49,8 +71,7 @@ public:
 	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetClipToWorldMatrix() const
 	{
 		auto m = GetFrustumMatrix() * GetViewMatrix();
-        return m.inverse();
+		return m.inverse();
 	}
-
 };
 

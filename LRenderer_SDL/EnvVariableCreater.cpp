@@ -1,15 +1,15 @@
 ﻿#include "EnvVariableCreater.h"
 
-EnvVariable* EnvVariableCreater::CreateEnvVariable(const Eigen::Matrix4f& modelMatrix)
+EnvVariable* EnvVariableCreater::CreateEnvVariable(Camera *camera, const Eigen::Matrix4f& modelMatrix)
 {
 	EnvVariable *context = new EnvVariable;
 	context->modelMatrix = modelMatrix;
-	context->viewMatrix = Camera::main->GetViewMatrix();
-	context->frustumMatrix = Camera::main->GetFrustumMatrix();
+	context->viewMatrix = camera->GetViewMatrix();
+	context->frustumMatrix = camera->GetFrustumMatrix();
 
 	context->modelToClipMatrix = context->frustumMatrix * context->viewMatrix * context->modelMatrix;
 
-	context->cameraWorldPos = Camera::main->transform->position;
+	context->cameraWorldPos = camera->transform->position;
 
 	auto& lights = Graphics::lightsList;
 	context->directionalLightCount = lights.directionalLight.size();
