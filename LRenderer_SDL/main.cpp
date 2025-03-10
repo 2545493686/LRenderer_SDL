@@ -219,8 +219,24 @@ void ClearFramebuffer(Framebuffer* framebuffer)
 void Draw(Framebuffer *framebuffer, Scene *scene)
 {
 	static Transform *cameraTransform = new Transform();
-    static Camera* camera = new OrthographicCamera(cameraTransform, WIDTH / (float)HEIGHT);
-    //camera->transform->Rotate(0, 10, 0);
+    static Camera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    
+    const Uint8* keyboard_state = SDL_GetKeyboardState(NULL);
+
+    // 检测特定按键是否被按下
+    if (keyboard_state[SDL_SCANCODE_UP]) {
+        camera->transform->Rotate(10, 0, 0);
+    }
+    if (keyboard_state[SDL_SCANCODE_DOWN]) {
+        camera->transform->Rotate(-10, 0, 0);
+    }
+    if (keyboard_state[SDL_SCANCODE_LEFT]) {
+        camera->transform->Rotate(0, 10, 0);
+    }
+    if (keyboard_state[SDL_SCANCODE_RIGHT]) {
+        camera->transform->Rotate(0, -10, 0);
+    }
+
 
     Graphics::SetCamera(camera);
 
@@ -253,7 +269,7 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     skyboxShader->tex1 = skybox;
     Graphics::DrawSkybox(skyboxShader);
     
-    Graphics::DrawTAA();
+    //Graphics::DrawTAA();
     Graphics::MergeSubpixels();
 
     framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 
