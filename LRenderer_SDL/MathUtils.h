@@ -8,12 +8,7 @@ class MathUtils
 public:
 	EIGEN_ALWAYS_INLINE static Eigen::Vector4f Pow(Eigen::Vector4f v, float p)
 	{
-		Eigen::Vector4f result;
-		result.x() = std::pow(v.x(), p);
-        result.y() = std::pow(v.y(), p);
-        result.z() = std::pow(v.z(), p);
-        result.w() = std::pow(v.w(), p);
-        return result;
+        return v.array().pow(p);
 	}
 
 	EIGEN_ALWAYS_INLINE static float Cross(Eigen::Vector2f p1, Eigen::Vector2f p2)

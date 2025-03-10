@@ -34,7 +34,11 @@ public:
 
 		if (isPerspective)
 		{
-			return (a * vec[0] / z[0] + b * vec[1] / z[1] + c * vec[2] / z[2]) * zt;
+			Eigen::Vector4f vec_over_z[3];
+			for (int i = 0; i < 3; i++) {
+				vec_over_z[i] = vec[i] / z[i]; 
+			}
+			return (a * vec_over_z[0] + b * vec_over_z[1] + c * vec_over_z[2]) * zt;
 		}
 		else
 		{

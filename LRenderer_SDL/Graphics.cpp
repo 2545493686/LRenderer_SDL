@@ -191,7 +191,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 							v2fTemp[indexes[2]].texcoords[i],
 						};
 
-						v2f.texcoords[i] = Eigen::Vector4f(PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective));
+						v2f.texcoords[i] = PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective);
 					}
 
 					subpixel.v2f = v2f;
