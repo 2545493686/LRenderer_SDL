@@ -219,7 +219,7 @@ void ClearFramebuffer(Framebuffer* framebuffer)
 void Draw(Framebuffer *framebuffer, Scene *scene)
 {
 	static Transform *cameraTransform = new Transform();
-    static Camera* camera = new OrthographicCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    static Camera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
     
     const Uint8* keyboard_state = SDL_GetKeyboardState(NULL);
 
@@ -247,7 +247,7 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     Graphics::SetFramebuffer(framebuffer);
 
     static DirectionalLight* light = new DirectionalLight();
-    light->direction = Eigen::Vector4f(0.3, -0.8, 0.5, 0);
+    light->direction = Eigen::Vector4f(-0.3, -0.8, 0.5, 0);
 
     Graphics::SetLight(light);
 
