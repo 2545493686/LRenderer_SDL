@@ -14,5 +14,7 @@ Eigen::Vector4f SkyboxShader::fragment(const v2f& i)
 {
     auto f = i.texcoords[0].head<3>() - context->cameraWorldPos;
 
-    return context->ambientLightColor + tex1->Sample(f);
+    //return context->ambientLightColor + tex1->Sample(f);
+    auto color = tex1->Sample(f);;
+    return color * 3.0f;
 }

@@ -74,6 +74,14 @@ int main(int argc, char* argv[]) {
         SDL_RenderPresent(renderer);
         
         frameCount++;
+
+#if DEBUG_COUNT
+        if (frameCount == DEBUG_COUNT)
+        {
+            while (1) {}
+        }
+#endif
+
         //std::cout << "FPS: " << frameCount << "\n";
     }
 
@@ -108,7 +116,7 @@ Scene* CreateScene()
 
 #pragma region Transform
     Transform* meshTransform = new Transform();
-    meshTransform->position = Eigen::Vector3f(2, 0, 10);
+    meshTransform->position = Eigen::Vector3f(2, 0, -10);
     meshTransform->scale = Eigen::Vector3f(1, 1, 1);
     meshTransform->Rotate(30, 0, 0);
     cube->AddComponent(meshTransform);
@@ -136,7 +144,7 @@ Scene* CreateScene()
 
 #pragma region Transform
     Transform* sphereTransform = new Transform();
-    sphereTransform->position = Eigen::Vector3f(-2, 0, 10);
+    sphereTransform->position = Eigen::Vector3f(-2, 0, -10);
     sphereTransform->scale = Eigen::Vector3f(1, 1, 1);
     sphere->AddComponent(sphereTransform);
 #pragma endregion
@@ -180,7 +188,12 @@ Framebuffer* InitFramebuffer()
 void ClearFramebuffer(Framebuffer* framebuffer)
 {
     static auto provider = Random::InSquare(0.5);
-    const auto bias = provider.Pop();
+
+#if SUBPIXEL_BIAS
+    const Eigen::Vector2f bias = provider.Pop();
+#else
+    const Eigen::Vector2f bias = Eigen::Vector2f::Zero();
+#endif // SUBPIXEL_BIAS
 
     // 必要的初始化
     for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
@@ -206,14 +219,16 @@ void ClearFramebuffer(Framebuffer* framebuffer)
 void Draw(Framebuffer *framebuffer, Scene *scene)
 {
 	static Transform *cameraTransform = new Transform();
-    static Camera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    static Camera* camera = new OrthographicCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    //camera->transform->Rotate(0, 10, 0);
+
     Graphics::SetCamera(camera);
 
     ClearFramebuffer(framebuffer);
     Graphics::SetFramebuffer(framebuffer);
 
     static DirectionalLight* light = new DirectionalLight();
-    light->direction = Eigen::Vector4f(-1, -1, 2, 0);
+    light->direction = Eigen::Vector4f(0.3, -0.8, 0.5, 0);
 
     Graphics::SetLight(light);
 
@@ -234,8 +249,8 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
         Graphics::DrawMesh(renderer->mesh, transform->GetModelMatrix(), renderer->shader);
     }
 
-    static CubemapShader* skyboxShader = new CubemapShader();
-    skyboxShader->cubemap = skybox;
+    static SkyboxShader* skyboxShader = new SkyboxShader();
+    skyboxShader->tex1 = skybox;
     Graphics::DrawSkybox(skyboxShader);
     
     Graphics::DrawTAA();

@@ -5,10 +5,12 @@ Framebuffer* Graphics::framebuffer = nullptr;
 Camera* Graphics::camera = nullptr;
 Graphics::LightsList Graphics::lightsList;
 Eigen::Vector4f Graphics::ambientLightColor;
+bool Graphics::isPerspective;
 
 void Graphics::SetCamera(Camera* camera)
 {
 	Graphics::camera = camera;
+	isPerspective = camera->GetType() == Camera::Type::Perspective;
 }
 
 // 同时清楚 Graphics 状态
@@ -83,7 +85,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		for (size_t j = 0; j < 3; j++)
 		{
 			clipPosTemp[j] = v2fTemp[indexes[j]].vertex;
-			z[j] = clipPosTemp[j].w();
+			z[j] = clipPosTemp[j].z();
 			//std::cout << clipPosTemp[j] << std::endl << std::endl;
 		}
 
@@ -163,7 +165,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 					Eigen::Vector3f barycentric =
 						MathUtils::Barycentric(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]);
 
-					float zt = PCI::InterpolationZ(barycentric, z);
+					float zt = PCI::InterpolationZ(barycentric, z, isPerspective);
 
 					if (zt < 0)
 					{
@@ -179,7 +181,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 
 					// TODO: 所有属性插值
 					v2f v2f;
-					v2f.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp);
+					v2f.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp, isPerspective);
 
 					for (size_t i = 0; i < V2F_TEX_COUNT; i++)
 					{
@@ -189,7 +191,7 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 							v2fTemp[indexes[2]].texcoords[i],
 						};
 
-						v2f.texcoords[i] = Eigen::Vector4f(PCI::InterpolationVector(barycentric, z, zt, texcoordTemp));
+						v2f.texcoords[i] = Eigen::Vector4f(PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective));
 					}
 
 					subpixel.v2f = v2f;
@@ -297,20 +299,15 @@ void Graphics::MergeSubpixels()
 		{
 			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
-			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
+			Eigen::Vector4f colorTemp = Eigen::Vector4f::Zero();
+			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
-
-				Eigen::Vector4f colorTemp = Eigen::Vector4f::Zero();
-				for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
-				{
-					auto& subpixel = pixelData.subpixels[subpixelIndex];
-					colorTemp += subpixel.color;
-				}
-
-				colorTemp /= MSAA_TYPE;
-				framebuffer->colorBuffer.putPixel(x, y, Color::Make(colorTemp));
+				colorTemp += subpixel.color;
 			}
+
+			colorTemp /= pixelData.subpixels.size();
+			framebuffer->colorBuffer.putPixel(x, y, Color::Make(colorTemp));
 		}
 	}
 }

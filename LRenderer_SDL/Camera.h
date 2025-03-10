@@ -24,6 +24,9 @@ public:
 		this->aspect = aspect;
 	}
 
+	enum class Type { Perspective, Orthographic };
+
+	virtual Type GetType() const = 0;
 	virtual Eigen::Matrix4f GetViewMatrix() const = 0;
 	virtual Eigen::Matrix4f GetFrustumMatrix() const = 0;
 	virtual Eigen::Matrix4f GetClipToWorldMatrix() const = 0;
@@ -42,7 +45,12 @@ public:
 	{
 	}
 
-	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const
+	Type GetType() const override
+	{
+		return Type::Perspective;
+	}
+
+	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const override
 	{
 		Eigen::Affine3f affine = Eigen::Affine3f::Identity();
 		affine.translate(-transform->position);
@@ -54,7 +62,7 @@ public:
 	// w = -z(view)
 	// P79_Shader入门精要_冯乐乐 
 	// LANQ 25.2.5
-	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetFrustumMatrix() const
+	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetFrustumMatrix() const override
 	{
 		Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
 
@@ -62,16 +70,64 @@ public:
 
 		projection << nSize / aspect, 0, 0, 0,
 			0, nSize, 0, 0,
-			0, 0, (zFar + zNear) / (zFar - zNear), -2 * zFar * zNear / (zFar - zNear),
-			0, 0, 1, 0;
+			0, 0, -(zFar + zNear) / (zFar - zNear), -2 * zFar * zNear / (zFar - zNear),
+			0, 0, -1, 0;
 
 		return projection;
 	}
 
-	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetClipToWorldMatrix() const
+	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetClipToWorldMatrix() const override
 	{
 		auto m = GetFrustumMatrix() * GetViewMatrix();
 		return m.inverse();
 	}
 };
 
+class OrthographicCamera : public Camera
+{
+public:
+	float size = 5;
+
+	explicit OrthographicCamera(Transform* transform) : Camera(transform)
+	{
+	}
+
+	OrthographicCamera(Transform* transform, float aspect) : Camera(transform, aspect)
+	{
+	}
+
+	Type GetType() const override
+	{
+		return Type::Orthographic;
+	}
+
+	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const override
+	{
+		Eigen::Affine3f affine = Eigen::Affine3f::Identity();
+		affine.translate(-transform->position);
+		affine.rotate(transform->rotation.inverse());
+		return affine.matrix();
+	}
+
+	// view -> clip
+	// w = -z(view)
+	// P79_Shader入门精要_冯乐乐 
+	// LANQ 25.2.5
+	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetFrustumMatrix() const override
+	{
+		Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+
+		projection <<	1 / (aspect * size),	0,			0,						0,
+						0,						1 / size,	0,						0,
+						0,						0,			2 / (zFar - zNear),	(zFar + zNear) / (zFar - zNear),
+						0,						0,			0,						1;
+
+		return projection;
+	}
+
+	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetClipToWorldMatrix() const override
+	{
+		auto m = GetFrustumMatrix() * GetViewMatrix();
+		return m.inverse();
+	}
+};

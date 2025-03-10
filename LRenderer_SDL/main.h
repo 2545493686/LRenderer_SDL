@@ -34,6 +34,8 @@
 #include "CubemapShader.h"
 #include "DirectionalLight.h"
 #include "BlinnPhongShader.h"
+#include "SkyboxShader.h"
+#include "GraphicsSettings.h"
 
 void LoadAssets();
 void Draw(Framebuffer* framebuffer, Scene* scene);

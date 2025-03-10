@@ -44,6 +44,7 @@ private:
 
 	static Framebuffer* framebuffer;
 	static Camera* camera;
+	static bool isPerspective;
 
 	static LightsList lightsList;
 
