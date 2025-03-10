@@ -60,7 +60,8 @@ void CubemapLoader::LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap)
 
         for (int y = 0; y < size; ++y) {
             for (int x = 0; x < size; ++x) {
-                const int srcY = totalHeight - 1 - (verticalOffset + y);
+                //const int srcY = totalHeight - 1 - (verticalOffset + y);
+                const int srcY = verticalOffset + y;
                 const int srcIndex = srcY * size + x;
                 const int dstIndex = y * size + x;
 
@@ -68,7 +69,7 @@ void CubemapLoader::LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap)
                     std::pow(pixelBuffer[4 * srcIndex + 0], 2.2f),
                     std::pow(pixelBuffer[4 * srcIndex + 1], 2.2f),
                     std::pow(pixelBuffer[4 * srcIndex + 2], 2.2f),
-                    std::pow(pixelBuffer[4 * srcIndex + 3], 2.2f)
+                    pixelBuffer[4 * srcIndex + 3]
                 );
             }
         }

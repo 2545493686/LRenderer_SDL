@@ -15,22 +15,34 @@ void Cubemap::DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::
     float maxAxis = std::max({ absDir.x(), absDir.y(), absDir.z() });
 
     if (maxAxis == absDir.x()) {
-        face = (dir.x() > 0) ? Face::PosX : Face::NegX;
+        face = (dir.x() > 0) ? Face::NegX : Face::PosX;
         const float sign = (dir.x() > 0) ? 1.0f : -1.0f;
+        uv.y() = 1 - (dir.y() / (sign * dir.x()) + 1.0f) * 0.5f;
         uv.x() = (dir.z() / (sign * dir.x()) + 1.0f) * 0.5f;
-        uv.y() = (dir.y() / (sign * dir.x()) + 1.0f) * 0.5f;
+        if (sign < 0)
+        {
+            uv.x() = 1 - uv.x();
+        }
     }
     else if (maxAxis == absDir.y()) {
         face = (dir.y() > 0) ? Face::PosY : Face::NegY;
         const float sign = (dir.y() > 0) ? 1.0f : -1.0f;
-        uv.x() = (dir.x() / (sign * dir.y()) + 1.0f) * 0.5f;
-        uv.y() = (-dir.z() / (sign * dir.y()) + 1.0f) * 0.5f;
+        uv.y() = 1 - (-dir.z() / (sign * dir.y()) + 1.0f) * 0.5f;
+        uv.x() = 1 - (dir.x() / (sign * dir.y()) + 1.0f) * 0.5f;
+        if (sign < 0)
+        {
+            uv.y() = 1 - uv.y();
+        }
     }
     else {
         face = (dir.z() > 0) ? Face::PosZ : Face::NegZ;
         const float sign = (dir.z() > 0) ? 1.0f : -1.0f;
+        uv.y() = 1 - (dir.y() / (sign * dir.z()) + 1.0f) * 0.5f;
         uv.x() = (-dir.x() / (sign * dir.z()) + 1.0f) * 0.5f;
-        uv.y() = (dir.y() / (sign * dir.z()) + 1.0f) * 0.5f;
+        if (sign < 0)
+        {
+            uv.x() = 1 - (-dir.x() / (sign * dir.z()) + 1.0f) * 0.5f;
+        }
     }
 }
 
