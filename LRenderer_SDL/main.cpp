@@ -260,7 +260,6 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
     static Camera* shadowCamera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
 
-
     Graphics::DrawFullScreen();
 
     static SkyboxShader* skyboxShader = new SkyboxShader();
@@ -272,6 +271,9 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 #endif // !CAMERA_MOVE
 
     Graphics::MergeSubpixels();
+
+    auto sbb = scene->GetSphereBoudingBox();
+    Graphics::DrawSphere(sbb.center, sbb.radius, Color::Red);
 
     framebuffer->colorBuffer.drawImage(skybox->data[2], skybox->size, skybox->size, 128, 128);
     framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 

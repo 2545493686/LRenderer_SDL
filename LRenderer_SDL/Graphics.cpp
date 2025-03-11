@@ -33,6 +33,38 @@ void Graphics::SetAmbientLightColor(Eigen::Vector4f color)
 	ambientLightColor = color;
 }
 
+void Graphics::DrawSphere(Eigen::Vector3f center, float radius, uint32_t color, float step)
+{
+	for (float sita = 0; sita < 2 * M_PI; sita += step)
+	{
+		for (float fi = 0; fi < M_PI; fi += step)
+		{
+			Eigen::Vector3f pos = Eigen::Vector3f(
+				center.x() + radius * cos(sita) * sin(fi),
+				center.y() + radius * cos(fi),
+				center.z() + radius * sin(sita) * sin(fi)
+			);
+
+			Graphics::DrawPoint(pos, Color::Red);
+		}
+	}
+}
+
+// TODO: 考虑子像素和深度
+void Graphics::DrawPoint(Eigen::Vector3f worldPosition, uint32_t color)
+{
+	Eigen::Vector4f pos;
+	pos << worldPosition, 1.0f;
+
+	pos = camera->GetFrustumMatrix() * camera->GetViewMatrix() * pos;
+	pos /= pos.w();
+
+	pos.x() = (pos.x() + 1) * framebuffer->getWidth() / 2;
+	pos.y() = (pos.y() + 1) * framebuffer->getHeight() / 2;
+
+	framebuffer->colorBuffer.putPixel(pos.x(), pos.y(), color);
+}
+
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
 {
 	PreDrawMesh(mesh, modelMatrix, shader);
