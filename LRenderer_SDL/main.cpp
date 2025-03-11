@@ -254,19 +254,10 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     Eigen::Vector4f ambientLightColor = Color::MakeVector(Color::White) * 0.25f;
     Graphics::SetAmbientLightColor(ambientLightColor);
 
-    for (auto gameObject : scene->GetGameObjects())
-    {
-        MeshRenderer* renderer = gameObject->GetComponent<MeshRenderer>();
-        
-        if (renderer == nullptr)
-        {
-            continue;
-        }
+    // 绘制 GBuffer
 
-        Transform *transform = gameObject->GetComponent<Transform>();
 
-        Graphics::DrawMesh(renderer->mesh, transform->GetModelMatrix(), renderer->shader);
-    }
+    DrawAllMeshes(framebuffer, scene);
 
     static SkyboxShader* skyboxShader = new SkyboxShader();
     skyboxShader->tex1 = skybox;
@@ -281,4 +272,21 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     framebuffer->colorBuffer.drawImage(skybox->data[2], skybox->size, skybox->size, 128, 128);
     framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 
         Eigen::Vector2f(40, 30), Color::Yellow);
+}
+
+void DrawAllMeshes(Framebuffer *framebuffer, Scene *scene, Shader* shader)
+{
+    for (auto gameObject : scene->GetGameObjects())
+    {
+        MeshRenderer* renderer = gameObject->GetComponent<MeshRenderer>();
+
+        if (renderer == nullptr)
+        {
+            continue;
+        }
+
+        Transform* transform = gameObject->GetComponent<Transform>();
+
+        Graphics::DrawMesh(renderer->mesh, transform->GetModelMatrix(), shader ? shader : renderer->shader);
+    }
 }

@@ -131,8 +131,9 @@ struct SubpixelData
     Eigen::Vector4f color;
     float z;
 
-    // TODO: 运动向量
     Eigen::Vector4f worldPosition;
+
+    // TODO: 运动向量
     Eigen::Vector2f vectorMotion;
 
     v2f v2f;
