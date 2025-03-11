@@ -1,5 +1,7 @@
 ﻿#include "Graphics.h"
 
+Shader* Graphics::builtinShader = new BuiltinShader();
+
 Mesh* Graphics::skyboxMesh = nullptr;
 Framebuffer* Graphics::framebuffer = nullptr;
 Camera* Graphics::camera = nullptr;
@@ -33,12 +35,20 @@ void Graphics::SetAmbientLightColor(Eigen::Vector4f color)
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
 {
+	PreDrawMesh(mesh, modelMatrix, shader);
+    DrawFullScreen();
+}
+
+void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
+{
 	EnvVariable* context = EnvVariableCreater::CreateEnvVariable(camera, modelMatrix);
 
 	shader->DrawInit(context);
+	builtinShader->DrawInit(context);
 
 	appdata v;
 	v2f* v2fTemp = new v2f[mesh->verticesCount];
+	v2f* builtinV2fTemp = new v2f[mesh->verticesCount];
 
 	for (size_t i = 0; i < mesh->verticesCount; i++)
 	{
@@ -66,8 +76,9 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		}
 
 		v2fTemp[i] = shader->vertex(v);
-		
 		assert(v2fTemp[i].vertex.w() != 0);
+		
+		builtinV2fTemp[i] = builtinShader->vertex(v);
 	}
 
 	// 遍历三角形
@@ -179,11 +190,11 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 
 					subpixel.z = zt;
 
-					// TODO: 所有属性插值
-					v2f v2f;
-					v2f.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp, isPerspective);
+#pragma region Custom Shader
+					v2f o;
+					o.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp, isPerspective);
 
-					for (size_t i = 0; i < V2F_TEX_COUNT; i++)
+					for (size_t i = 0; i < shader->usedTexCount; i++)
 					{
 						Eigen::Vector4f texcoordTemp[3] = {
 							v2fTemp[indexes[0]].texcoords[i],
@@ -191,17 +202,46 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 							v2fTemp[indexes[2]].texcoords[i],
 						};
 
-						v2f.texcoords[i] = PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective);
+						o.texcoords[i] = PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective);
 					}
 
-					subpixel.v2f = v2f;
-					
-					subpixel.valid = true;
+					subpixel.v2f = o;
+					subpixel.shader = shader;
+#pragma endregion
+
+#pragma region Builtin Shader
+					v2f oBuiltin;
+					Eigen::Vector4f worldPosTemp[3] = {
+						builtinV2fTemp[indexes[0]].vertex,
+						builtinV2fTemp[indexes[1]].vertex,
+						builtinV2fTemp[indexes[2]].vertex,
+					};
+
+					oBuiltin.vertex = PCI::InterpolationVector(barycentric, z, zt, worldPosTemp, isPerspective);
+
+					for (size_t i = 0; i < builtinShader->usedTexCount; i++)
+					{
+						Eigen::Vector4f texcoordTemp[3] = {
+							builtinV2fTemp[indexes[0]].texcoords[i],
+							builtinV2fTemp[indexes[1]].texcoords[i],
+							builtinV2fTemp[indexes[2]].texcoords[i],
+						};
+
+						oBuiltin.texcoords[i] = PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective);
+					}
+
+					subpixel.builtinV2f = oBuiltin;
+#pragma endregion
 				}
 			}
 		}
 	}
 
+	EnvVariableCreater::ClearEnvVariable(context);
+}
+
+void Graphics::DrawFullScreen()
+{
 	// 渲染
 	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{
@@ -213,12 +253,12 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
 
-				if (!subpixel.valid)
+				if (!subpixel.shader)
 				{
 					continue;
 				}
 
-				auto color = shader->fragment(subpixel.v2f);
+				auto color = subpixel.shader->fragment(subpixel.v2f);
 				subpixel.color = MathUtils::Pow(color, 1 / 2.2f);
 			}
 		}
@@ -231,15 +271,13 @@ void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Sh
 		{
 			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
-            for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
+			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
 				auto& subpixel = pixelData.subpixels[subpixelIndex];
-				subpixel.valid = false;
+				subpixel.shader = nullptr;
 			}
 		}
 	}
-
-	EnvVariableCreater::ClearEnvVariable(context);
 }
 
 void Graphics::DrawSkybox(Shader* shader)

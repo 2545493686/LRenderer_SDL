@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
         }
 #endif
 
-        //std::cout << "FPS: " << frameCount << "\n";
+        std::cout << "frame: " << frameCount << "\n";
     }
 
     // 释放资源
@@ -209,7 +209,7 @@ void ClearFramebuffer(Framebuffer* framebuffer)
                 subpixel.screenPosition = Eigen::Vector2f(x + 0.5f, y + 0.5f);
                 subpixel.screenPosition += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
                 subpixel.color = Color::MakeVector(Color::Black);
-                subpixel.valid = false;
+                subpixel.shader = nullptr;
                 subpixel.z = std::numeric_limits<float>::max();
             }
         }
@@ -254,10 +254,8 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     Eigen::Vector4f ambientLightColor = Color::MakeVector(Color::White) * 0.25f;
     Graphics::SetAmbientLightColor(ambientLightColor);
 
-    // 绘制 GBuffer
-
-
-    DrawAllMeshes(framebuffer, scene);
+    PreDrawAllMeshes(framebuffer, scene);
+    Graphics::DrawFullScreen();
 
     static SkyboxShader* skyboxShader = new SkyboxShader();
     skyboxShader->tex1 = skybox;
@@ -274,7 +272,7 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
         Eigen::Vector2f(40, 30), Color::Yellow);
 }
 
-void DrawAllMeshes(Framebuffer *framebuffer, Scene *scene, Shader* shader)
+void PreDrawAllMeshes(Framebuffer *framebuffer, Scene *scene, Shader* shader)
 {
     for (auto gameObject : scene->GetGameObjects())
     {
@@ -287,6 +285,6 @@ void DrawAllMeshes(Framebuffer *framebuffer, Scene *scene, Shader* shader)
 
         Transform* transform = gameObject->GetComponent<Transform>();
 
-        Graphics::DrawMesh(renderer->mesh, transform->GetModelMatrix(), shader ? shader : renderer->shader);
+        Graphics::PreDrawMesh(renderer->mesh, transform->GetModelMatrix(), shader ? shader : renderer->shader);
     }
 }

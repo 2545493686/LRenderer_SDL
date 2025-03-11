@@ -24,6 +24,8 @@ struct v2f
 class Shader
 {
 public:
+	int usedTexCount = V2F_TEX_COUNT;
+
 	// 绘制前调用
 	virtual void DrawInit(EnvVariable *context);
 

@@ -9,6 +9,7 @@
 #include "DirectionalLight.h"
 #include "Camera.h"
 #include "EnvVariableCreater.h"
+#include "BuiltinShader.h"
 
 class Graphics
 {
@@ -21,6 +22,9 @@ public:
 	static void SetAmbientLightColor(Eigen::Vector4f color);
 
 	static void DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
+	static void PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
+	static void DrawFullScreen();
+
 	static void DrawSkybox(Shader* shader);
 	static void DrawTAA();
 	static void MergeSubpixels();
@@ -37,6 +41,7 @@ private:
 		}
 	};
 
+	static Shader *builtinShader;
 	static Eigen::Vector4f ambientLightColor;
 
 	// 远裁剪平面上的平面网格，顶点0从左下角，依次逆时针方向排布4个顶点

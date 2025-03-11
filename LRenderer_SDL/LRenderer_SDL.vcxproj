@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="Array.cpp" />
     <ClCompile Include="BlinnPhongShader.cpp" />
+    <ClCompile Include="BuiltinShader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -187,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="BlinnPhongShader.h" />
+    <ClInclude Include="BuiltinShader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />

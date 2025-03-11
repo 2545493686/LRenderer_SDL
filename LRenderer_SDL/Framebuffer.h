@@ -136,8 +136,10 @@ struct SubpixelData
     // TODO: 运动向量
     Eigen::Vector2f vectorMotion;
 
+    v2f builtinV2f;
     v2f v2f;
-    bool valid;
+    Shader *shader = nullptr; // 不为空表示片元有带渲染颜色
+
 };
 
 struct PixelData

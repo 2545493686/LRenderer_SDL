@@ -5,6 +5,8 @@ v2f SkyboxShader::vertex(const appdata& v)
     v2f o;
 
     o.vertex = ShaderUtils::ToClipPos(context, v.vertex);
+    
+    usedTexCount = 1;
     o.texcoords[0] = ShaderUtils::ToWorldPos(context, v.vertex);
 
     return o;

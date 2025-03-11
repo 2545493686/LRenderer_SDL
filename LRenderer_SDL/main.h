@@ -41,4 +41,4 @@ void LoadAssets();
 void Draw(Framebuffer* framebuffer, Scene* scene);
 Scene* CreateScene();
 Framebuffer* InitFramebuffer();
-void DrawAllMeshes(Framebuffer* framebuffer, Scene* scene, Shader* shader = nullptr);
+void PreDrawAllMeshes(Framebuffer* framebuffer, Scene* scene, Shader* shader = nullptr);

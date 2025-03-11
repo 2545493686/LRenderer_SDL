@@ -4,6 +4,8 @@ v2f CubemapShader::vertex(const appdata& v)
 {
 	v2f o;
 	o.vertex = ShaderUtils::ToClipPos(context, v.vertex);
+	
+	usedTexCount = 1;
 	o.texcoords[0] = v.vertex;
 
 	return o;
