@@ -24,3 +24,38 @@ std::vector<GameObject *> Scene::GetGameObjects()
 	}
 	return result;
 }
+
+SphereBoundingBox Scene::GetSphereBoudingBox()
+{
+	sceneSbb.center = Eigen::Vector3f(0, 0, 0);
+	sceneSbb.radius = 0;	
+	
+	for (auto& gameObject : gameObjects.GetValidItems())
+	{
+		auto meshRenderer = gameObject->GetComponent<MeshRenderer>();
+		
+		if (!meshRenderer)
+		{
+			continue;
+		}
+
+		auto sbb = meshRenderer->GetSphereBoundingBox();
+		sceneSbb.center += sbb.center / gameObjects.count;
+	}
+
+	for (auto& gameObject : gameObjects.GetValidItems())
+	{
+		auto meshRenderer = gameObject->GetComponent<MeshRenderer>();
+
+		if (!meshRenderer)
+		{
+			continue;
+		}
+
+		auto sbb = meshRenderer->GetSphereBoundingBox();
+		sceneSbb.radius = std::max(sceneSbb.radius, 
+			(sceneSbb.center - sbb.center).norm() + sbb.radius);
+	}
+
+    return sceneSbb;
+}

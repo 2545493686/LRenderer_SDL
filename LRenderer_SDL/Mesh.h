@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Eigen/Dense"
+#include "BoundingBox.h"
 
 class Mesh
 {
@@ -19,5 +20,8 @@ public:
 
 	int edgesCount;
 	int *edges = nullptr;
+
+	// 模型空间包围盒
+    SphereBoundingBox sphereBoundingBox;
 };
 

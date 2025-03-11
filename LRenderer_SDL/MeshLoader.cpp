@@ -25,13 +25,26 @@ Mesh* MeshLoader::CovertAIMesh(const aiMesh* aiMesh)
 	mesh->verticesCount = aiMesh->mNumVertices;
 	mesh->vertices = new Eigen::Vector3f[mesh->verticesCount];
 
+	// 创建包围盒
+	mesh->sphereBoundingBox.center = Eigen::Vector3f::Zero();
+	mesh->sphereBoundingBox.radius = 0;
+
 	// 获取顶点
-	for (size_t i = 0; i < aiMesh->mNumVertices; i++)
+	for (size_t i = 0; i < mesh->verticesCount; i++)
 	{
 		mesh->vertices[i] <<  
 			aiMesh->mVertices[i].x,
 			aiMesh->mVertices[i].y,
 			aiMesh->mVertices[i].z;
+
+		mesh->sphereBoundingBox.center += mesh->vertices[i] / mesh->verticesCount;
+	}
+
+    for (size_t i = 0; i < mesh->verticesCount; i++)
+	{
+		mesh->sphereBoundingBox.radius = 
+			std::max(mesh->sphereBoundingBox.radius, 
+				(mesh->vertices[i] - mesh->sphereBoundingBox.center).norm());
 	}
 
 	// 获取边

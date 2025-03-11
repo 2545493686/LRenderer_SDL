@@ -9,6 +9,7 @@
     "sdl2",
     "spdlog",
     "sdl2-image",
-    "openexr"
+    "openexr",
+    "cppcoro"
   ]
 }

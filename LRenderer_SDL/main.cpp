@@ -123,7 +123,7 @@ Scene* CreateScene()
 #pragma endregion
 
 #pragma region MeshRenderer
-    MeshRenderer* meshRenderer = new MeshRenderer();
+    MeshRenderer* meshRenderer = new MeshRenderer(meshTransform);
 
     meshRenderer->mesh = cubeMesh;
 
@@ -150,7 +150,7 @@ Scene* CreateScene()
 #pragma endregion
 
 #pragma region MeshRenderer
-    MeshRenderer* sphereRenderer = new MeshRenderer();
+    MeshRenderer* sphereRenderer = new MeshRenderer(sphereTransform);
     sphereRenderer->mesh = sphereMesh;
 
     // 默认着色器
@@ -255,6 +255,12 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     Graphics::SetAmbientLightColor(ambientLightColor);
 
     PreDrawAllMeshes(framebuffer, scene);
+
+    static Transform* shadowCameraTransform = new Transform();
+
+    static Camera* shadowCamera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
+
+
     Graphics::DrawFullScreen();
 
     static SkyboxShader* skyboxShader = new SkyboxShader();

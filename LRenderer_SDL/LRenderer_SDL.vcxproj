@@ -109,7 +109,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>Default</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)\vcpkg_installed\x64-windows\include\OpenEXR;$(SolutionDir)\vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -125,8 +125,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions> /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions> /utf-8 /await %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir)\vcpkg_installed\x64-windows\include\OpenEXR;$(SolutionDir)\vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +154,7 @@
   <ItemGroup>
     <ClCompile Include="Array.cpp" />
     <ClCompile Include="BlinnPhongShader.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="BuiltinShader.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Color.cpp" />
@@ -188,6 +190,7 @@
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="BlinnPhongShader.h" />
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BuiltinShader.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Color.h" />
