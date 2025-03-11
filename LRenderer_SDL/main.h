@@ -9,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
+#include <algorithm>
+#include <chrono>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -36,6 +38,7 @@
 #include "BlinnPhongShader.h"
 #include "SkyboxShader.h"
 #include "GraphicsSettings.h"
+#include "Time.h"
 
 void LoadAssets();
 void Draw(Framebuffer* framebuffer, Scene* scene);

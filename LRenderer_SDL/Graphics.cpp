@@ -33,7 +33,7 @@ void Graphics::SetAmbientLightColor(Eigen::Vector4f color)
 	ambientLightColor = color;
 }
 
-void Graphics::DrawSphere(Eigen::Vector3f center, float radius, uint32_t color, float step)
+void Graphics::DrawSphere(Eigen::Vector3f center, float radius, Eigen::Vector4f color, float step)
 {
 	for (float sita = 0; sita < 2 * M_PI; sita += step)
 	{
@@ -45,24 +45,51 @@ void Graphics::DrawSphere(Eigen::Vector3f center, float radius, uint32_t color, 
 				center.z() + radius * sin(sita) * sin(fi)
 			);
 
-			Graphics::DrawPoint(pos, Color::Red);
+			Graphics::DrawPoint(pos, color);
 		}
 	}
 }
 
 // TODO: 考虑子像素和深度
-void Graphics::DrawPoint(Eigen::Vector3f worldPosition, uint32_t color)
+void Graphics::DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color)
 {
 	Eigen::Vector4f pos;
 	pos << worldPosition, 1.0f;
 
 	pos = camera->GetFrustumMatrix() * camera->GetViewMatrix() * pos;
+	
+	if (!(pos.w() > 0 && pos.x() > -pos.w() && pos.x() < pos.w() 
+		&& pos.y() > -pos.w() && pos.y() < pos.w()
+		&& pos.z() > -pos.w() && pos.z() < pos.w()))
+	{
+		return;
+	}
+
 	pos /= pos.w();
 
 	pos.x() = (pos.x() + 1) * framebuffer->getWidth() / 2;
 	pos.y() = (pos.y() + 1) * framebuffer->getHeight() / 2;
 
-	framebuffer->colorBuffer.putPixel(pos.x(), pos.y(), color);
+
+	if (pos.z() < 0)
+	{
+		return;
+	}
+
+	if (pos.x() < 0 || pos.x() >= framebuffer->getWidth() ||
+		pos.y() < 0 || pos.y() >= framebuffer->getHeight())
+	{
+		return;
+	}
+
+	auto& pixelData = framebuffer->pixelBuffer.referPixel(pos.x(), pos.y());
+
+	for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
+	{
+		auto& subpixel = pixelData.subpixels[subpixelIndex];
+		subpixel.color = color;
+		subpixel.z = pos.z();
+	}
 }
 
 void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
@@ -123,23 +150,38 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 		}
 
 		// 齐次裁剪空间坐标
-		Eigen::Vector4f clipPosTemp[3];
+        bool valid = false;
 		float z[3];
+		Eigen::Vector4f clipPos[3];
 		for (size_t j = 0; j < 3; j++)
 		{
-			clipPosTemp[j] = v2fTemp[indexes[j]].vertex;
-			z[j] = clipPosTemp[j].z();
-			//std::cout << clipPosTemp[j] << std::endl << std::endl;
+			clipPos[j] = v2fTemp[indexes[j]].vertex;
+			z[j] = clipPos[j].z();
+
+			float x = clipPos[j].x();
+			float y = clipPos[j].y();
+			float z = clipPos[j].z();
+			float w = clipPos[j].w() * 1.01f;
+
+			valid = valid || 
+				(clipPos[j].w() > 0 &&
+					x >= -w && x <= w && 
+					y >= -w && y <= w && 
+					z >= -w && z <= w);
 		}
 
-		// TODO: 裁剪边界三角形
+		if (!valid)
+		{
+			// TODO: 裁剪边界三角形
+			continue;
+		}
 
 		// ndc
 		Eigen::Vector4f ndcTemp[3];
 		for (size_t j = 0; j < 3; j++)
 		{
 			// 透视除法
-			ndcTemp[j] = clipPosTemp[j] / clipPosTemp[j].w();
+			ndcTemp[j] = clipPos[j] / clipPos[j].w();
 		}
 
 		// 屏幕坐标
@@ -210,7 +252,7 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 
 					float zt = PCI::InterpolationZ(barycentric, z, isPerspective);
 
-					if (zt < 0)
+					if (zt < -camera->zNear)
 					{
 						continue;
 					}
@@ -224,7 +266,7 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 
 #pragma region Custom Shader
 					v2f o;
-					o.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPosTemp, isPerspective);
+					o.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPos, isPerspective);
 
 					for (size_t i = 0; i < shader->usedTexCount; i++)
 					{
@@ -320,9 +362,9 @@ void Graphics::DrawSkybox(Shader* shader)
 	}
 
 	Eigen::Vector4f points[] = {
-		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f) * camera->zFar,
-		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f) * camera->zFar,
-		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f) * camera->zFar,
+		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f)* camera->zFar,
+		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f)* camera->zFar,
+		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f)* camera->zFar,
 		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f) * camera->zFar
 	};
 

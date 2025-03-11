@@ -28,6 +28,9 @@
     <None Include="assets\skybox_default.exr">
       <Filter>Asserts</Filter>
     </None>
+    <None Include="assets\sphere.fbx">
+      <Filter>Asserts</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -132,6 +135,9 @@
     <ClCompile Include="BoundingBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -234,6 +240,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BoundingBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

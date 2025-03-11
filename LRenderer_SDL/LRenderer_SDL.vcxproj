@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /await %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)\vcpkg_installed\x64-windows\include\OpenEXR;$(SolutionDir)\vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -149,6 +149,7 @@
     <None Include="..\vcpkg-configuration.json" />
     <None Include="..\vcpkg.json" />
     <None Include="assets\skybox_default.exr" />
+    <None Include="assets\sphere.fbx" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +181,7 @@
     <ClCompile Include="SkyboxShader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
+    <ClCompile Include="Time.cpp" />
     <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -216,6 +218,7 @@
     <ClInclude Include="SkyboxShader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLoader.h" />
+    <ClInclude Include="Time.h" />
     <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="Mesh.h" />

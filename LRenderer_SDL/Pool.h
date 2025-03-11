@@ -14,7 +14,7 @@ public:
 	cppcoro::generator<T&> GetValidItems();
 
 	int count;
-	std::vector< T> data = std::vector<T>();
+	std::vector<T> data = std::vector<T>();
 	std::vector<bool> valid = std::vector<bool>(); // TODO: 改为位图
 	std::queue<int> freeIndex = std::queue<int>();
 };

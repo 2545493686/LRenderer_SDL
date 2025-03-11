@@ -24,8 +24,8 @@ public:
 	static void SetLight(DirectionalLight *light);
 	static void SetAmbientLightColor(Eigen::Vector4f color);
 
-	static void DrawSphere(Eigen::Vector3f center, float radius, uint32_t color, float step = 0.1f);
-	static void DrawPoint(Eigen::Vector3f worldPosition, uint32_t color);
+	static void DrawSphere(Eigen::Vector3f center, float radius, Eigen::Vector4f color, float step = 0.1f);
+	static void DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color);
 	static void DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
 	static void PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
 	static void DrawFullScreen();

@@ -11,20 +11,6 @@ void Scene::RemoveGameObject(GameObject *gameObject)
 	gameObjects.Remove(gameObject->sceneIndex);
 }
 
-std::vector<GameObject *> Scene::GetGameObjects()
-{
-	std::vector<GameObject *> result;
-
-	for (size_t i = 0; i < gameObjects.data.size(); i++)
-	{
-		if (gameObjects.valid[i])
-		{
-			result.push_back(gameObjects.data[i]);
-		}
-	}
-	return result;
-}
-
 SphereBoundingBox Scene::GetSphereBoudingBox()
 {
 	sceneSbb.center = Eigen::Vector3f(0, 0, 0);

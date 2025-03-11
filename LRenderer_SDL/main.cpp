@@ -58,6 +58,8 @@ int main(int argc, char* argv[]) {
     int frameCount = 0;
 
     while (running) {
+        auto start = std::chrono::high_resolution_clock::now();
+
         // 事件处理
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -74,6 +76,13 @@ int main(int argc, char* argv[]) {
         SDL_RenderPresent(renderer);
         
         frameCount++;
+        auto end = std::chrono::high_resolution_clock::now();
+
+        // 计算时间差并转换单位
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        Time::deltaTime = duration.count() / 1000.0f;
+        Time::time += Time::deltaTime;
+
 
 #if DEBUG_COUNT
         if (frameCount == DEBUG_COUNT)
@@ -83,6 +92,7 @@ int main(int argc, char* argv[]) {
 #endif
 
         std::cout << "frame: " << frameCount << "\n";
+        std::cout << "delta time: " << Time::deltaTime << "\n";
     }
 
     // 释放资源
@@ -118,7 +128,7 @@ Scene* CreateScene()
     Transform* meshTransform = new Transform();
     meshTransform->position = Eigen::Vector3f(2, 0, -10);
     meshTransform->scale = Eigen::Vector3f(1, 1, 1);
-    meshTransform->Rotate(30, 0, 0);
+    meshTransform->Rotate(10, 0, 0);
     cube->AddComponent(meshTransform);
 #pragma endregion
 
@@ -221,21 +231,21 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 	static Transform *cameraTransform = new Transform();
     static Camera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
     
-    const Uint8* keyboard_state = SDL_GetKeyboardState(NULL);
-
 #if CAMERA_MOVE
+    float moveSpeed = 1.0f;
+    const Uint8* keyboard_state = SDL_GetKeyboardState(NULL);
     // 检测特定按键是否被按下
     if (keyboard_state[SDL_SCANCODE_UP]) {
-        camera->transform->Rotate(10, 0, 0);
+        camera->transform->Rotate(moveSpeed, 0, 0);
     }
     if (keyboard_state[SDL_SCANCODE_DOWN]) {
-        camera->transform->Rotate(-10, 0, 0);
+        camera->transform->Rotate(-moveSpeed, 0, 0);
     }
     if (keyboard_state[SDL_SCANCODE_LEFT]) {
-        camera->transform->Rotate(0, 10, 0);
+        camera->transform->Rotate(0, moveSpeed, 0);
     }
     if (keyboard_state[SDL_SCANCODE_RIGHT]) {
-        camera->transform->Rotate(0, -10, 0);
+        camera->transform->Rotate(0, -moveSpeed, 0);
     }
 
 #endif // CAMERA_MOVE
@@ -251,12 +261,33 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
     Graphics::SetLight(light);
 
+    auto sbb = scene->GetSphereBoudingBox();
+
+    Eigen::Vector3f lightForward = light->direction.head<3>().normalized();
+
+    static float t = 0;
+
+    t += 0.1f;
+    t = std::min(1.0f, t);
+
+    camera->transform->position << Time::time, 0, 0;
+    //camera->transform->Rotate(0, 10, 0);
+
+    auto target = scene->gameObjects.data[0]->GetComponent<Transform>()->position;
+    camera->transform->rotation = Eigen::Quaternionf::FromTwoVectors(-Eigen::Vector3f::UnitZ(), target - camera->transform->position);
+
+    auto cube = scene->gameObjects.data[0]->GetComponent<Transform>();
+    cube->Rotate(10, 10, 0);
+
+    Eigen::Vector3f tp = sbb.center - lightForward * (sbb.radius + camera->zNear + 1);
+    Graphics::DrawSphere(tp, 0.3f, Color::MakeVector(Color::Green));
+
     Eigen::Vector4f ambientLightColor = Color::MakeVector(Color::White) * 0.25f;
     Graphics::SetAmbientLightColor(ambientLightColor);
 
     PreDrawAllMeshes(framebuffer, scene);
 
-    static Transform* shadowCameraTransform = new Transform();
+    //static Transform* shadowCameraTransform = new Transform();
 
     static Camera* shadowCamera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
 
@@ -270,10 +301,9 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
     Graphics::DrawTAA();
 #endif // !CAMERA_MOVE
 
-    Graphics::MergeSubpixels();
+    Graphics::DrawSphere(sbb.center, sbb.radius, Color::MakeVector(Color::Red));
 
-    auto sbb = scene->GetSphereBoudingBox();
-    Graphics::DrawSphere(sbb.center, sbb.radius, Color::Red);
+    Graphics::MergeSubpixels();
 
     framebuffer->colorBuffer.drawImage(skybox->data[2], skybox->size, skybox->size, 128, 128);
     framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 
@@ -282,8 +312,15 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
 void PreDrawAllMeshes(Framebuffer *framebuffer, Scene *scene, Shader* shader)
 {
-    for (auto gameObject : scene->GetGameObjects())
+    for (size_t i = 0; i < scene->gameObjects.data.size(); i++)
     {
+        if (!scene->gameObjects.valid[i])
+        {
+            continue;
+        }
+
+        auto gameObject = scene->gameObjects.data[i];
+
         MeshRenderer* renderer = gameObject->GetComponent<MeshRenderer>();
 
         if (renderer == nullptr)

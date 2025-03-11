@@ -52,10 +52,7 @@ public:
 
 	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const override
 	{
-		Eigen::Affine3f affine = Eigen::Affine3f::Identity();
-		affine.translate(-transform->position);
-		affine.rotate(transform->rotation.inverse());
-		return affine.matrix();
+		return transform->GetModelMatrix().inverse();
 	}
 
 	// view -> clip
@@ -103,10 +100,7 @@ public:
 
 	EIGEN_ALWAYS_INLINE Eigen::Matrix4f GetViewMatrix() const override
 	{
-		Eigen::Affine3f affine = Eigen::Affine3f::Identity();
-		affine.translate(-transform->position);
-		affine.rotate(transform->rotation.inverse());
-		return affine.matrix();
+		return transform->GetModelMatrix().inverse();
 	}
 
 	// view -> clip

@@ -65,10 +65,6 @@ template<typename T>
 void Buffer<T>::putPixel(int x, int y, T color)
 {
     y = height - y - 1;
-
-    if (x < 0 || x >= width || y < 0 || y >= height)
-        return;
-
     frameBuffer[y * width + x] = color;
 }
 

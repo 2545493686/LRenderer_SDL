@@ -13,13 +13,11 @@ class Scene
 public:
 	void AddGameObject(GameObject* gameObject);
 	void RemoveGameObject(GameObject* gameObject);
-
-	std::vector<GameObject*> GetGameObjects();
 	
 	SphereBoundingBox GetSphereBoudingBox();
+	Pool<GameObject *> gameObjects;
 
 private:
-	Pool<GameObject *> gameObjects;
 
 	SphereBoundingBox sceneSbb;
 };
