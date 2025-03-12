@@ -1,4 +1,5 @@
 ﻿#include "main.h"
+#include "InitShadowMapPass.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -54,6 +55,7 @@ int main(int argc, char* argv[]) {
 
     context.framebuffer = InitFramebuffer(WIDTH, HEIGHT);
     context.taaBuffer = InitTAABuffer(WIDTH, HEIGHT);
+    context.shadowMap = new Framebuffer(4096, 4096);
 
     LoadAssets();
     
@@ -213,6 +215,21 @@ Framebuffer* InitFramebuffer(int width, int height)
     return framebuffer;
 }
 
+void ClearShadowMap(Framebuffer* shadowMap)
+{
+    // 必要的初始化
+    for (int x = 0; x < shadowMap->pixelBuffer.getWidth(); x++)
+    {
+        for (int y = 0; y < shadowMap->pixelBuffer.getHeight(); y++)
+        {
+            auto& pixelData = shadowMap->pixelBuffer.referPixel(x, y);
+            pixelData.subpixels.resize(1);
+            
+            auto screenPosition = Eigen::Vector2f(x + 0.5f, y + 0.5f);
+            pixelData.subpixels[0].Reset(screenPosition);
+        }
+    }
+}
 
 void ClearFramebuffer(Framebuffer* framebuffer)
 {
@@ -233,13 +250,10 @@ void ClearFramebuffer(Framebuffer* framebuffer)
 
             for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
             {
-                auto& subpixel = pixelData.subpixels[subpixelIndex];
+                auto screenPosition = Eigen::Vector2f(x + 0.5f, y + 0.5f);
+                screenPosition += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
 
-                subpixel.screenPosition = Eigen::Vector2f(x + 0.5f, y + 0.5f);
-                subpixel.screenPosition += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
-                subpixel.color = Color::MakeVector(Color::Black);
-                subpixel.shader = nullptr;
-                subpixel.z = std::numeric_limits<float>::max();
+                pixelData.subpixels[subpixelIndex].Reset(screenPosition);
             }
         }
     }
@@ -288,7 +302,7 @@ void Draw(DrawContext &context)
     Graphics::SetAmbientLightColor(ambientLightColor);
 
     // 更新全屏插值数据
-    PreDrawAllMeshes(framebuffer, scene);
+    PreDrawAllMeshes(scene);
     
 #pragma region 阴影绘制
 
@@ -310,12 +324,21 @@ void Draw(DrawContext &context)
     );
     shadowCamera->size = sbb.radius * 2;
 
-    Graphics::SetCamera(shadowCamera);
-
     // 阴影 Framebuffer
+    ClearShadowMap(context.shadowMap);
     
-    Graphics::SetFramebuffer(context.shadowMap);
+    static InitShadowMapPass *initSdmPass = new InitShadowMapPass();
+    initSdmPass->camera = shadowCamera;
+    initSdmPass->shadowMap = context.shadowMap;
+    Graphics::DrawPostprocessing(initSdmPass);
 
+    Graphics::SetCamera(shadowCamera);
+    Graphics::SetFramebuffer(context.shadowMap);
+    
+    static DepthTextureShader *depthTextureShader = new DepthTextureShader();
+    PreDrawAllMeshes(scene, depthTextureShader);
+    Graphics::DrawFullScreen();
+    Graphics::MergeSubpixelsAndWrite();
 
 #pragma endregion
 
@@ -335,16 +358,18 @@ void Draw(DrawContext &context)
 
     Graphics::DrawSphere(sbb.center, sbb.radius, Color::MakeVector(Color::Red));
 
-    Graphics::MergeSubpixelsAndOutput();
+    Graphics::MergeSubpixelsAndWrite();
 
-    framebuffer->colorBuffer.drawImage(skybox->data[2], skybox->size, skybox->size, 128, 128);
+    framebuffer->colorBuffer.drawImage(context.shadowMap->colorBuffer.data(),
+        context.shadowMap->getWidth(), 
+        context.shadowMap->getHeight(), 128, 128);
     framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 
         Eigen::Vector2f(40, 30), Color::Yellow);
     
     Graphics::Clear();
 }
 
-void PreDrawAllMeshes(Framebuffer *framebuffer, Scene *scene, Shader* shader)
+void PreDrawAllMeshes(Scene *scene, Shader* shader)
 {
     for (size_t i = 0; i < scene->gameObjects.data.size(); i++)
     {

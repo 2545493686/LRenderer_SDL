@@ -39,6 +39,7 @@
 #include "SkyboxShader.h"
 #include "GraphicsSettings.h"
 #include "Time.h"
+#include "DepthTextureShader.h"
 
 struct DrawContext
 {
@@ -54,4 +55,4 @@ void Draw(DrawContext &context);
 Scene* CreateScene();
 Buffer<TAAData>* InitTAABuffer(float width, float heigth);
 Framebuffer* InitFramebuffer(int width, int height);
-void PreDrawAllMeshes(Framebuffer* framebuffer, Scene* scene, Shader* shader = nullptr);
+void PreDrawAllMeshes(Scene* scene, Shader* shader = nullptr);

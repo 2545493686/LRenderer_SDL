@@ -163,6 +163,7 @@
     <ClCompile Include="CubemapShader.cpp" />
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="CubemapLoader.cpp" />
+    <ClCompile Include="DepthTextureShader.cpp" />
     <ClCompile Include="DirectionalLight.cpp" />
     <ClCompile Include="EnvVariable.cpp" />
     <ClCompile Include="EnvVariableCreater.cpp" />
@@ -172,12 +173,14 @@
     <ClCompile Include="GraphicsSettings.cpp" />
     <ClCompile Include="GraphicsType.cpp" />
     <ClCompile Include="GraphicsUtils.cpp" />
+    <ClCompile Include="InitShadowMapPass.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="MeshLoader.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="PerspectiveCorrectInterpolation.cpp" />
     <ClCompile Include="Pool.cpp" />
+    <ClCompile Include="PostprocessingPass.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SkyboxShader.cpp" />
@@ -202,6 +205,7 @@
     <ClInclude Include="CubemapShader.h" />
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="CubemapLoader.h" />
+    <ClInclude Include="DepthTextureShader.h" />
     <ClInclude Include="DirectionalLight.h" />
     <ClInclude Include="EnvVariable.h" />
     <ClInclude Include="EnvVariableCreater.h" />
@@ -211,12 +215,14 @@
     <ClInclude Include="GraphicsSettings.h" />
     <ClInclude Include="GraphicsType.h" />
     <ClInclude Include="GraphicsUtils.h" />
+    <ClInclude Include="InitShadowMapPass.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="PerspectiveCorrectInterpolation.h" />
     <ClInclude Include="Pool.h" />
+    <ClInclude Include="PostprocessingPass.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SkyboxShader.h" />

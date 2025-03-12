@@ -272,7 +272,7 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 					if (camera->GetType() == Camera::Type::Perspective)
 					{
 						pixelRealZ = PCI::InterpolationZ(barycentric, verticesRealZ);
-						z = pixelRealZ / camera->zFar;
+						z = pixelRealZ / camera->zFar; // TODO: 更正确地映射到 0-1
 					}
 					else if (camera->GetType() == Camera::Type::Orthographic)
 					{
@@ -350,8 +350,31 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 	EnvVariableCreater::ClearEnvVariable(context);
 }
 
+void Graphics::DrawPostprocessing(PostprocessingPass *pass)
+{
+	pass->init();
+
+	// 渲染
+	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
+	{
+		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
+		{
+			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+
+			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
+			{
+				pass->fragment(pixelData.subpixels[subpixelIndex]);
+			}
+		}
+	}
+}
+
+
 void Graphics::DrawFullScreen()
 {
+	EnvVariable* context = EnvVariableCreater::CreateEnvVariable(camera, Eigen::Matrix4f::Identity());
+
+
 	// 渲染
 	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{
@@ -368,6 +391,7 @@ void Graphics::DrawFullScreen()
 					continue;
 				}
 
+				subpixel.shader->DrawInit(context);
 				auto color = subpixel.shader->fragment(subpixel.v2f);
 				subpixel.color = MathUtils::Pow(color, 1 / 2.2f);
 			}
@@ -388,6 +412,8 @@ void Graphics::DrawFullScreen()
 			}
 		}
 	}
+
+	EnvVariableCreater::ClearEnvVariable(context);
 }
 
 void Graphics::DrawSkybox(Shader* shader)
@@ -447,7 +473,7 @@ void Graphics::DrawTAA()
 	}
 }
 
-void Graphics::MergeSubpixelsAndOutput()
+void Graphics::MergeSubpixelsAndWrite()
 {
 	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{

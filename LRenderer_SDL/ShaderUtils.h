@@ -9,10 +9,16 @@ class ShaderUtils
 	ShaderUtils() = delete;
 
 public:
-	static EIGEN_ALWAYS_INLINE 
+	static EIGEN_ALWAYS_INLINE
 	Eigen::Vector4f ToClipPos(const EnvVariable* context, Eigen::Vector4f vertex)
 	{
 		return context->modelToClipMatrix * vertex;
+	}
+
+	static EIGEN_ALWAYS_INLINE 
+	Eigen::Vector4f ToViewPos(const EnvVariable* context, Eigen::Vector4f vertex)
+	{
+		return context->modelToViewMatrix * vertex;
 	}
 
 	static EIGEN_ALWAYS_INLINE

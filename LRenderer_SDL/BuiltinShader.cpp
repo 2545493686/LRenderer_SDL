@@ -12,6 +12,7 @@ v2f BuiltinShader::vertex(const appdata& v)
     return o;
 }
 
+// 不支持
 Eigen::Vector4f BuiltinShader::fragment(const v2f& i)
 {
 	return Eigen::Vector4f();

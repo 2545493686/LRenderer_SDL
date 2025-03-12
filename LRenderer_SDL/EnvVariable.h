@@ -13,10 +13,14 @@ struct DirectionalLightLightData
 class EnvVariable
 {
 public:
+	float zNear;
+	float zFar;
+
 	Eigen::Matrix4f modelMatrix;
 	Eigen::Matrix4f viewMatrix;
 	Eigen::Matrix4f frustumMatrix;
 	Eigen::Matrix4f modelToClipMatrix;
+	Eigen::Matrix4f modelToViewMatrix;
 	Eigen::Vector3f cameraWorldPos;
 	Eigen::Matrix4f clipToWorldMatrix;
 

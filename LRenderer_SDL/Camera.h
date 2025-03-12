@@ -9,14 +9,17 @@
 class Camera : public Component
 {
 public:
-	float aspect = 1;
-	float zNear = 0.1f;
-	float zFar = 50;
+	float aspect;
+	float zNear;
+	float zFar;
 
 	Transform* transform;
 	explicit Camera(Transform* transform) 
 	{
         this->transform = transform;
+		this->aspect = 1;
+		this->zNear = 0.1f;
+		this->zFar = 50;
 	};
 
 	Camera(Transform* transform, float aspect) : Camera(transform)

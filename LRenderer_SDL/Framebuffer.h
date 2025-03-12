@@ -23,7 +23,8 @@ public:
     void drawLine(int x0, int y0, int x1, int y1, T color);
     void drawLine(Eigen::Vector2f p0, Eigen::Vector2f p1, T color);
 
-    void drawImage(Eigen::Vector4f* image, int imageWidth, int imageHeight, int width, int height);
+    void drawImage(uint32_t *image, int imageWidth, int imageHeight, int width, int height);
+    void drawImage(Eigen::Vector4f *image, int imageWidth, int imageHeight, int width, int height);
 
     T* data() { return frameBuffer.data(); }
     int getWidth() const { return width; }
@@ -103,6 +104,20 @@ template<typename T>
 void Buffer<T>::drawLine(Eigen::Vector2f p0, Eigen::Vector2f p1, T color)
 {
     drawLine(static_cast<int>(p0.x()), static_cast<int>(p0.y()), static_cast<int>(p1.x()), static_cast<int>(p1.y()), color);
+}
+
+template<typename T>
+void Buffer<T>::drawImage(uint32_t* image, int imageWidth, int imageHeight, int width, int height)
+{
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+
+            int rx = static_cast<int>(static_cast<float>(x) * imageWidth / width);
+            int ry = static_cast<int>(static_cast<float>(y) * imageHeight / height);
+
+            putPixel(x, this->height - 1 - y, image[ry * imageWidth + rx]);
+        }
+    }
 }
 
 template<typename T>
