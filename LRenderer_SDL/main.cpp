@@ -336,9 +336,7 @@ void Draw(DrawContext &context)
     Graphics::SetFramebuffer(context.shadowMap);
     
     static DepthTextureShader *depthTextureShader = new DepthTextureShader();
-    PreDrawAllMeshes(scene, depthTextureShader);
-    Graphics::DrawFullScreen();
-    Graphics::MergeSubpixelsAndWrite();
+    PreDrawAllMeshes(scene, depthTextureShader, DrawFlags_ZBuffer);
 
 #pragma endregion
 
@@ -360,9 +358,10 @@ void Draw(DrawContext &context)
 
     Graphics::MergeSubpixelsAndWrite();
 
-    framebuffer->colorBuffer.drawImage(context.shadowMap->colorBuffer.data(),
-        context.shadowMap->getWidth(), 
-        context.shadowMap->getHeight(), 128, 128);
+    DrawPixelData(context.shadowMap, &(context.framebuffer->colorBuffer), 128, 128);
+    //framebuffer->colorBuffer.drawImage(context.shadowMap->colorBuffer.data(),
+    //    context.shadowMap->getWidth(), 
+    //    context.shadowMap->getHeight(), 128, 128);
     framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 
         Eigen::Vector2f(40, 30), Color::Yellow);
     
@@ -390,5 +389,37 @@ void PreDrawAllMeshes(Scene *scene, Shader* shader, DrawFlags drawFlags)
         Transform* transform = gameObject->GetComponent<Transform>();
 
         Graphics::PreDrawMesh(renderer->mesh, transform->GetModelMatrix(), shader ? shader : renderer->shader, drawFlags);
+    }
+}
+
+void DrawPixelData(Framebuffer *framebuffer, Colorbuffer *colorbuffer, float height, float width)
+{
+    auto imageWidth = framebuffer->getWidth();
+    auto imageHeight = framebuffer->getHeight();
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+
+            int rx = static_cast<int>(static_cast<float>(x) * imageWidth / width);
+            int ry = static_cast<int>(static_cast<float>(y) * imageHeight / height);
+
+            rx = MathUtils::Clamp(rx, 0, imageWidth - 1);
+            ry = MathUtils::Clamp(ry, 0, imageHeight - 1);
+
+            auto& pixelData = framebuffer->pixelBuffer.referPixel(rx, ry);
+
+            Eigen::Vector4f color = Eigen::Vector4f::Zero();
+            for (size_t i = 0; i < pixelData.subpixels.size(); i++)
+            {
+                auto& subpixelData = pixelData.subpixels[i];
+                
+                Eigen::Vector4f subColor = Eigen::Vector4f::Ones() * subpixelData.z;
+                subColor.w() = 1;
+
+                color += subColor / pixelData.subpixels.size();
+            }
+
+            colorbuffer->putPixel(x, colorbuffer->height - 1 - y, Color::Make(color));
+        }
     }
 }
