@@ -15,7 +15,7 @@ public:
 		{
 			// // It = (a * Ia / Za + b * Ib / Zb + c * Ic / Zc) * zt
 			Eigen::Vector3f zInverse = verticesZ.cwiseInverse();
-			Eigen::Vector3f k = barycentric.array() * zInverse.array();
+			Eigen::Vector3f k = barycentric.cwiseProduct(zInverse);
 			return (verticesData * k) * z;
 		}
 		if (cameraType == Camera::Type::Orthographic)

@@ -40,8 +40,15 @@
 #include "GraphicsSettings.h"
 #include "Time.h"
 
+struct DrawContext
+{
+	Framebuffer *framebuffer;
+	Scene *scene;
+	Framebuffer *shadowMap;
+};
+
 void LoadAssets();
-void Draw(Framebuffer* framebuffer, Scene* scene);
+void Draw(DrawContext context);
 Scene* CreateScene();
-Framebuffer* InitFramebuffer();
+Framebuffer* InitFramebuffer(int width, int height);
 void PreDrawAllMeshes(Framebuffer* framebuffer, Scene* scene, Shader* shader = nullptr);

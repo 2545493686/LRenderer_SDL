@@ -8,7 +8,7 @@ v2f BlinnPhongShader::vertex(const appdata& v)
     
     usedTexCount = 2;
     o.texcoords[0] << v.uv0.x(), v.uv0.y(), 0, 0;
-    o.texcoords[1] = ShaderUtils::ToClipPos(context, v.normal);
+    o.texcoords[1] = ShaderUtils::ToWorldPos(context, v.normal);
 
     return o;
 }
@@ -17,7 +17,11 @@ Eigen::Vector4f BlinnPhongShader::fragment(const v2f& i)
 {
     Eigen::Vector4f worldNormal = i.texcoords[1].normalized();
 
-    Eigen::Vector4f baseColor = tex1->Sample(i.texcoords[0].x(), i.texcoords[0].y());
+    Eigen::Vector4f baseColor = Eigen::Vector4f::Ones();
+    if (tex1)
+    {
+        baseColor = tex1->Sample(i.texcoords[0].x(), i.texcoords[0].y());
+    }
 
     Eigen::Vector4f diffuse = Eigen::Vector4f::Zero();
     for (size_t i = 0; i < context->directionalLightCount; i++)

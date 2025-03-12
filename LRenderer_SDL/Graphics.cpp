@@ -9,18 +9,20 @@ Graphics::LightsList Graphics::lightsList;
 Eigen::Vector4f Graphics::ambientLightColor;
 bool Graphics::isPerspective;
 
+void Graphics::Clear()
+{
+	lightsList.Clear();
+}
+
 void Graphics::SetCamera(Camera* camera)
 {
 	Graphics::camera = camera;
 	isPerspective = camera->GetType() == Camera::Type::Perspective;
 }
 
-// 同时清楚 Graphics 状态
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
 {
 	Graphics::framebuffer = framebuffer;
-
-	lightsList.Clear(); 
 }
 
 void Graphics::SetLight(DirectionalLight *light)
@@ -439,7 +441,7 @@ void Graphics::DrawTAA()
 	}
 }
 
-void Graphics::MergeSubpixels()
+void Graphics::MergeSubpixelsAndOutput()
 {
 	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
 	{

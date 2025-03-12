@@ -20,6 +20,8 @@ class Graphics
 	friend class EnvVariableCreater;
 
 public:
+	static void Clear();
+
 	static void SetCamera(Camera* camera);
 	static void SetFramebuffer(Framebuffer *framebuffer);
 	static void SetLight(DirectionalLight *light);
@@ -33,7 +35,7 @@ public:
 
 	static void DrawSkybox(Shader* shader);
 	static void DrawTAA();
-	static void MergeSubpixels();
+	static void MergeSubpixelsAndOutput();
 
 private:
 	struct LightsList

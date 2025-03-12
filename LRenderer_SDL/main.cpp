@@ -50,10 +50,13 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
-    Framebuffer *framebuffer = InitFramebuffer();
+    DrawContext context;
+
+    context.framebuffer = InitFramebuffer(WIDTH, HEIGHT);
 
     LoadAssets();
-    Scene *scene = CreateScene();
+    
+    context.scene = CreateScene();
 
     int frameCount = 0;
 
@@ -67,10 +70,10 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        Draw(framebuffer, scene);
+        Draw(context);
 
         // 将帧缓冲绘制到窗口
-        SDL_UpdateTexture(texture, nullptr, framebuffer->colorBuffer.data(), WIDTH * sizeof(uint32_t));
+        SDL_UpdateTexture(texture, nullptr, context.framebuffer->colorBuffer.data(), WIDTH * sizeof(uint32_t));
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, texture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
@@ -165,7 +168,7 @@ Scene* CreateScene()
 
     // 默认着色器
     BlinnPhongShader* sphereShader = new BlinnPhongShader();
-    sphereShader->tex1 = uvTex;
+    //sphereShader->tex1 = uvTex;
 
     sphereRenderer->shader = sphereShader;
     sphere->AddComponent(sphereRenderer);
@@ -178,9 +181,9 @@ Scene* CreateScene()
 }
 
 // 初始化空间，定义每个像素4个采样点
-Framebuffer* InitFramebuffer()
+Framebuffer* InitFramebuffer(int width, int height)
 {
-    Framebuffer *framebuffer = new Framebuffer(WIDTH, HEIGHT);
+    Framebuffer *framebuffer = new Framebuffer(width, height);
 
     for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
     {
@@ -226,8 +229,11 @@ void ClearFramebuffer(Framebuffer* framebuffer)
     }
 }
 
-void Draw(Framebuffer *framebuffer, Scene *scene)
+void Draw(DrawContext context)
 {
+    Framebuffer *framebuffer = context.framebuffer;
+    Scene *scene = context.scene;
+
 	static Transform *cameraTransform = new Transform();
     //static OrthographicCamera* camera = new OrthographicCamera(cameraTransform, WIDTH / (float)HEIGHT);
     static PerspectiveCamera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
@@ -251,50 +257,58 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
 #endif // CAMERA_MOVE
 
-
     Graphics::SetCamera(camera);
 
     ClearFramebuffer(framebuffer);
     Graphics::SetFramebuffer(framebuffer);
 
     static DirectionalLight* light = new DirectionalLight();
-    light->direction = Eigen::Vector4f(-0.3, -0.8, 0.5, 0);
+    light->direction = Eigen::Vector4f(-1, -1, -1, 0);
 
     Graphics::SetLight(light);
+    
+    Eigen::Vector4f ambientLightColor = Color::MakeVector(Color::White) * 0.25f;
+    Graphics::SetAmbientLightColor(ambientLightColor);
 
+    // 更新全屏插值数据
+    PreDrawAllMeshes(framebuffer, scene);
+    
+#pragma region 阴影绘制
+
+    // 阴影相机
     auto sbb = scene->GetSphereBoudingBox();
 
     Eigen::Vector3f lightForward = light->direction.head<3>().normalized();
 
-
-    //auto target = scene->gameObjects.data[0]->GetComponent<Transform>()->position;
-    //auto dir = target - camera->transform->position;
-
-    //camera->transform->position = sbb.center - lightForward * (sbb.radius + camera->zNear);
-    //camera->transform->rotation = Eigen::Quaternionf::FromTwoVectors(
-    //    -Eigen::Vector3f::UnitZ(),
-    //    lightForward
-    //);
-    //camera->size = sbb.radius * 2;
-
-    auto cube = scene->gameObjects.data[0]->GetComponent<Transform>();
-    cube->Rotate(10, 10, 0);
-
     Eigen::Vector3f tp = sbb.center - lightForward * (sbb.radius + camera->zNear + 1);
     Graphics::DrawSphere(tp, 0.3f, Color::MakeVector(Color::Green));
 
-    Eigen::Vector4f ambientLightColor = Color::MakeVector(Color::White) * 0.25f;
-    Graphics::SetAmbientLightColor(ambientLightColor);
+    static Transform *shadowCameraTransform = new Transform();
+    static OrthographicCamera *shadowCamera = new OrthographicCamera(shadowCameraTransform, WIDTH / (float)HEIGHT);
 
-    PreDrawAllMeshes(framebuffer, scene);
+    shadowCamera->transform->position = sbb.center - lightForward * (sbb.radius + camera->zNear + 5);
+    shadowCamera->transform->rotation = Eigen::Quaternionf::FromTwoVectors(
+        -Eigen::Vector3f::UnitZ(),
+        lightForward
+    );
+    shadowCamera->size = sbb.radius * 2;
 
-    //static Transform* shadowCameraTransform = new Transform();
+    Graphics::SetCamera(shadowCamera);
 
-    static Camera* shadowCamera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    // 阴影 Framebuffer
 
+
+    Graphics::SetFramebuffer(framebuffer);
+
+#pragma endregion
+
+    Graphics::SetCamera(camera);
+    Graphics::SetFramebuffer(framebuffer);
+
+    // 绘制全屏
     Graphics::DrawFullScreen();
 
-    static SkyboxShader* skyboxShader = new SkyboxShader();
+    static SkyboxShader *skyboxShader = new SkyboxShader();
     skyboxShader->tex1 = skybox;
     Graphics::DrawSkybox(skyboxShader);
 
@@ -304,11 +318,13 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
     Graphics::DrawSphere(sbb.center, sbb.radius, Color::MakeVector(Color::Red));
 
-    Graphics::MergeSubpixels();
+    Graphics::MergeSubpixelsAndOutput();
 
     framebuffer->colorBuffer.drawImage(skybox->data[2], skybox->size, skybox->size, 128, 128);
     framebuffer->colorBuffer.drawLine(Eigen::Vector2f(0, 0), 
         Eigen::Vector2f(40, 30), Color::Yellow);
+    
+    Graphics::Clear();
 }
 
 void PreDrawAllMeshes(Framebuffer *framebuffer, Scene *scene, Shader* shader)
