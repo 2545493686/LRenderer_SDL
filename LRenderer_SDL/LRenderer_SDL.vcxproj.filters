@@ -19,6 +19,9 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{ba0c3403-f335-4ba9-b11c-baa92fc5a5f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\PixelShaders">
+      <UniqueIdentifier>{a2c8d564-17fc-4c8b-8a01-c5fc80705d6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
@@ -141,6 +144,9 @@
     <ClCompile Include="GraphicsUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicsType.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -249,6 +255,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

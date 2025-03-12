@@ -43,12 +43,15 @@
 struct DrawContext
 {
 	Framebuffer *framebuffer;
+	Buffer<TAAData> *taaBuffer;
+
 	Scene *scene;
 	Framebuffer *shadowMap;
 };
 
 void LoadAssets();
-void Draw(DrawContext context);
+void Draw(DrawContext &context);
 Scene* CreateScene();
+Buffer<TAAData>* InitTAABuffer(float width, float heigth);
 Framebuffer* InitFramebuffer(int width, int height);
 void PreDrawAllMeshes(Framebuffer* framebuffer, Scene* scene, Shader* shader = nullptr);

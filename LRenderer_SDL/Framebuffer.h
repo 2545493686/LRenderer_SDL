@@ -7,6 +7,7 @@
 #include "Color.h"
 #include "MathUtils.h"
 #include "GraphicsSettings.h"
+#include "GraphicsType.h"
 #include "Shader.h"
 
 template<typename T>
@@ -123,45 +124,6 @@ public:
     Colorbuffer(int width, int height) : Buffer<uint32_t>(width, height) {}
 };
 
-struct SubpixelData
-{
-    // 定义采样点
-    Eigen::Vector2f screenPosition;
-
-    Eigen::Vector4f color;
-    float z;
-
-    Eigen::Vector4f worldPosition;
-
-    // TODO: 运动向量
-    Eigen::Vector2f vectorMotion;
-
-    v2f builtinV2f;
-    v2f v2f;
-    Shader *shader = nullptr; // 不为空表示片元有带渲染颜色
-
-};
-
-struct PixelData
-{
-    std::vector<SubpixelData> subpixels;
-};
-
-struct TAASubpixelData
-{
-    Eigen::Vector4f historyColor;
-    uint8_t sampleCount;
-};
-
-struct TAAData
-{
-    // TODO: 锚点颜色
-    Eigen::Vector4f anchorColor;
-
-    TAASubpixelData subpixels[MSAA_TYPE];
-};
-
-
 template class Buffer<float>;
 template class Buffer<uint32_t>;
 
@@ -170,27 +132,14 @@ class Framebuffer {
 public:
     Framebuffer(int width, int height) 
         : colorBuffer(width, height),
-        pixelBuffer(width, height),
-        taaBuffer(width, height)
+        pixelBuffer(width, height)
     {
         this->width = width;
         this->height = height;
-
-#pragma region Init TAABuffer
-        TAAData taaTemp;
-        taaTemp.anchorColor = Color::MakeVector(Color::Black);
-        for (size_t i = 0; i < MSAA_TYPE; i++)
-        {
-            taaTemp.subpixels[i].sampleCount = 0;
-            taaTemp.subpixels[i].historyColor = Color::MakeVector(Color::Black);
-        }
-        taaBuffer.clear(taaTemp);
-#pragma endregion
     }
 
     Colorbuffer colorBuffer;
     Buffer<PixelData> pixelBuffer;
-    Buffer<TAAData> taaBuffer;
     
     int getWidth() const { return width; }
     int getHeight() const { return height; }

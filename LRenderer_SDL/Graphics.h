@@ -22,15 +22,16 @@ class Graphics
 public:
 	static void Clear();
 
-	static void SetCamera(Camera* camera);
+	static void SetCamera(Camera *camera);
 	static void SetFramebuffer(Framebuffer *framebuffer);
+	static void SetTAABuffer(Buffer<TAAData>* taabuffer);
 	static void SetLight(DirectionalLight *light);
 	static void SetAmbientLightColor(Eigen::Vector4f color);
 
 	static void DrawSphere(Eigen::Vector3f center, float radius, Eigen::Vector4f color, float step = 0.1f);
 	static void DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color);
-	static void DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
-	static void PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader);
+	static void DrawMesh(const Mesh *mesh, const Eigen::Matrix4f& modelMatrix, Shader *shader);
+	static void PreDrawMesh(const Mesh *mesh, const Eigen::Matrix4f& modelMatrix, Shader *shader);
 	static void DrawFullScreen();
 
 	static void DrawSkybox(Shader* shader);
@@ -55,7 +56,9 @@ private:
 	// 远裁剪平面上的平面网格，顶点0从左下角，依次逆时针方向排布4个顶点
 	static Mesh* skyboxMesh;
 
-	static Framebuffer* framebuffer;
+	static Framebuffer *framebuffer;
+	static Buffer<TAAData> *taaBuffer;
+
 	static Camera* camera;
 	static bool isPerspective;
 

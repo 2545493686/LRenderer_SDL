@@ -1,9 +1,10 @@
 ﻿#include "Graphics.h"
 
-Shader* Graphics::builtinShader = new BuiltinShader();
+Shader *Graphics::builtinShader = new BuiltinShader();
 
-Mesh* Graphics::skyboxMesh = nullptr;
-Framebuffer* Graphics::framebuffer = nullptr;
+Mesh *Graphics::skyboxMesh = nullptr;
+Framebuffer *Graphics::framebuffer = nullptr;
+Buffer<TAAData>* Graphics::taaBuffer = nullptr;
 Camera* Graphics::camera = nullptr;
 Graphics::LightsList Graphics::lightsList;
 Eigen::Vector4f Graphics::ambientLightColor;
@@ -18,6 +19,11 @@ void Graphics::SetCamera(Camera* camera)
 {
 	Graphics::camera = camera;
 	isPerspective = camera->GetType() == Camera::Type::Perspective;
+}
+
+void Graphics::SetTAABuffer(Buffer<TAAData> *taabuffer)
+{
+	Graphics::taaBuffer = taabuffer;
 }
 
 void Graphics::SetFramebuffer(Framebuffer* framebuffer)
@@ -422,7 +428,7 @@ void Graphics::DrawTAA()
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
 			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
-			auto& taaData = framebuffer->taaBuffer.referPixel(x, y);
+			auto& taaData = taaBuffer->referPixel(x, y);
 
 			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 			{

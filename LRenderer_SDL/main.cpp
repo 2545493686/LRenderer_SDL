@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
     DrawContext context;
 
     context.framebuffer = InitFramebuffer(WIDTH, HEIGHT);
+    context.taaBuffer = InitTAABuffer(WIDTH, HEIGHT);
 
     LoadAssets();
     
@@ -180,6 +181,21 @@ Scene* CreateScene()
     return scene;
 }
 
+Buffer<TAAData>* InitTAABuffer(float width, float heigth)
+{
+    Buffer<TAAData> *taaBuffer = new Buffer<TAAData>(width, heigth);
+    TAAData taaTemp;
+    taaTemp.anchorColor = Color::MakeVector(Color::Black);
+    for (size_t i = 0; i < MSAA_TYPE; i++)
+    {
+        taaTemp.subpixels[i].sampleCount = 0;
+        taaTemp.subpixels[i].historyColor = Color::MakeVector(Color::Black);
+    }
+    taaBuffer->clear(taaTemp);
+
+    return taaBuffer;
+}
+
 // 初始化空间，定义每个像素4个采样点
 Framebuffer* InitFramebuffer(int width, int height)
 {
@@ -229,7 +245,7 @@ void ClearFramebuffer(Framebuffer* framebuffer)
     }
 }
 
-void Draw(DrawContext context)
+void Draw(DrawContext &context)
 {
     Framebuffer *framebuffer = context.framebuffer;
     Scene *scene = context.scene;
@@ -261,6 +277,7 @@ void Draw(DrawContext context)
 
     ClearFramebuffer(framebuffer);
     Graphics::SetFramebuffer(framebuffer);
+    Graphics::SetTAABuffer(context.taaBuffer);
 
     static DirectionalLight* light = new DirectionalLight();
     light->direction = Eigen::Vector4f(-1, -1, -1, 0);
@@ -296,9 +313,9 @@ void Draw(DrawContext context)
     Graphics::SetCamera(shadowCamera);
 
     // 阴影 Framebuffer
+    
+    Graphics::SetFramebuffer(context.shadowMap);
 
-
-    Graphics::SetFramebuffer(framebuffer);
 
 #pragma endregion
 
