@@ -16,6 +16,14 @@
 #include "GraphicsUtils.h"
 #include "PostprocessingPass.h"
 
+enum DrawFlags
+{
+	DrawFlags_None		= 0,
+	DrawFlags_ZBuffer	= 1 << 0,
+	DrawFlags_Color		= 1 << 1,
+	DrawFlags_ALL		= (1 << 2) - 1
+};
+
 class Graphics
 {
 	friend class EnvVariableCreater;
@@ -31,8 +39,8 @@ public:
 
 	static void DrawSphere(Eigen::Vector3f center, float radius, Eigen::Vector4f color, float step = 0.1f);
 	static void DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color);
-	static void DrawMesh(const Mesh *mesh, const Eigen::Matrix4f& modelMatrix, Shader *shader);
-	static void PreDrawMesh(const Mesh *mesh, const Eigen::Matrix4f& modelMatrix, Shader *shader);
+	static void DrawMesh(const Mesh *mesh, const Eigen::Matrix4f& modelMatrix, Shader *shader, DrawFlags drawFlags);
+	static void PreDrawMesh(const Mesh *mesh, const Eigen::Matrix4f& modelMatrix, Shader *shader, DrawFlags drawFlags);
 	static void DrawPostprocessing(PostprocessingPass* pass);
 	static void DrawFullScreen();
 

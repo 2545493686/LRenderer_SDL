@@ -100,13 +100,13 @@ void Graphics::DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color)
 	}
 }
 
-void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
+void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader, DrawFlags drawFlags)
 {
-	PreDrawMesh(mesh, modelMatrix, shader);
+	PreDrawMesh(mesh, modelMatrix, shader, drawFlags);
     DrawFullScreen();
 }
 
-void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader)
+void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader, DrawFlags drawFlags)
 {
 	EnvVariable* context = EnvVariableCreater::CreateEnvVariable(camera, modelMatrix);
 
@@ -293,55 +293,61 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 						continue;
 					}
 
-					subpixel.z = z;
-
-					Eigen::Matrix<float, 4, 3> verticesData;
-
-#pragma region Custom Shader
-					v2f o;
-					verticesData.col(0) = clipPos[0];
-					verticesData.col(1) = clipPos[1];
-					verticesData.col(2) = clipPos[2];
-
-					o.vertex = GraphicsUtils::InterpolationVector(
-						barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
-
-					for (size_t i = 0; i < shader->usedTexCount; i++)
+					if (drawFlags & DrawFlags::DrawFlags_ZBuffer)
 					{
-						verticesData.col(0) = v2fTemp[indexes[0]].texcoords[i];
-						verticesData.col(1) = v2fTemp[indexes[1]].texcoords[i];
-						verticesData.col(2) = v2fTemp[indexes[2]].texcoords[i];
-
-						o.texcoords[i] = GraphicsUtils::InterpolationVector(
-							barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
+						subpixel.z = z;
 					}
 
-					subpixel.v2f = o;
-					subpixel.shader = shader;
-#pragma endregion
-
-#pragma region Builtin Shader
-					v2f oBuiltin;
-
-					verticesData.col(0) = builtinV2fTemp[indexes[0]].vertex;
-					verticesData.col(1) = builtinV2fTemp[indexes[0]].vertex;
-					verticesData.col(2) = builtinV2fTemp[indexes[0]].vertex;
-
-					oBuiltin.vertex = GraphicsUtils::InterpolationVector(
-						barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
-
-					for (size_t i = 0; i < builtinShader->usedTexCount; i++)
+					if (drawFlags & DrawFlags::DrawFlags_Color)
 					{
-						verticesData.col(0) = builtinV2fTemp[indexes[0]].texcoords[i];
-						verticesData.col(1) = builtinV2fTemp[indexes[1]].texcoords[i];
-						verticesData.col(2) = builtinV2fTemp[indexes[2]].texcoords[i];
+						Eigen::Matrix<float, 4, 3> verticesData;
 
-						oBuiltin.texcoords[i] = GraphicsUtils::InterpolationVector(
+		#pragma region Custom Shader
+						v2f o;
+						verticesData.col(0) = clipPos[0];
+						verticesData.col(1) = clipPos[1];
+						verticesData.col(2) = clipPos[2];
+
+						o.vertex = GraphicsUtils::InterpolationVector(
 							barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
-					}
 
-					subpixel.builtinV2f = oBuiltin;
-#pragma endregion
+						for (size_t i = 0; i < shader->usedTexCount; i++)
+						{
+							verticesData.col(0) = v2fTemp[indexes[0]].texcoords[i];
+							verticesData.col(1) = v2fTemp[indexes[1]].texcoords[i];
+							verticesData.col(2) = v2fTemp[indexes[2]].texcoords[i];
+
+							o.texcoords[i] = GraphicsUtils::InterpolationVector(
+								barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
+						}
+
+						subpixel.v2f = o;
+						subpixel.shader = shader;
+	#pragma endregion
+
+	#pragma region Builtin Shader
+						v2f oBuiltin;
+
+						verticesData.col(0) = builtinV2fTemp[indexes[0]].vertex;
+						verticesData.col(1) = builtinV2fTemp[indexes[0]].vertex;
+						verticesData.col(2) = builtinV2fTemp[indexes[0]].vertex;
+
+						oBuiltin.vertex = GraphicsUtils::InterpolationVector(
+							barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
+
+						for (size_t i = 0; i < builtinShader->usedTexCount; i++)
+						{
+							verticesData.col(0) = builtinV2fTemp[indexes[0]].texcoords[i];
+							verticesData.col(1) = builtinV2fTemp[indexes[1]].texcoords[i];
+							verticesData.col(2) = builtinV2fTemp[indexes[2]].texcoords[i];
+
+							oBuiltin.texcoords[i] = GraphicsUtils::InterpolationVector(
+								barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
+						}
+
+						subpixel.builtinV2f = oBuiltin;
+		#pragma endregion
+					}
 				}
 			}
 		}
@@ -444,7 +450,7 @@ void Graphics::DrawSkybox(Shader* shader)
         skyboxMesh->vertices[i] = (clipToWorld * points[i]).head<3>();
 	}
 
-	DrawMesh(skyboxMesh, Eigen::Matrix4f::Identity(), shader);
+	DrawMesh(skyboxMesh, Eigen::Matrix4f::Identity(), shader, DrawFlags_ALL);
 }
 
 void Graphics::DrawTAA()

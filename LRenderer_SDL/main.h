@@ -55,4 +55,4 @@ void Draw(DrawContext &context);
 Scene* CreateScene();
 Buffer<TAAData>* InitTAABuffer(float width, float heigth);
 Framebuffer* InitFramebuffer(int width, int height);
-void PreDrawAllMeshes(Scene* scene, Shader* shader = nullptr);
+void PreDrawAllMeshes(Scene* scene, Shader* shader = nullptr, DrawFlags drawFlags = DrawFlags::DrawFlags_ALL);

@@ -302,7 +302,7 @@ void Draw(DrawContext &context)
     Graphics::SetAmbientLightColor(ambientLightColor);
 
     // 更新全屏插值数据
-    PreDrawAllMeshes(scene);
+    PreDrawAllMeshes(scene, nullptr, DrawFlags::DrawFlags_ALL);
     
 #pragma region 阴影绘制
 
@@ -369,7 +369,7 @@ void Draw(DrawContext &context)
     Graphics::Clear();
 }
 
-void PreDrawAllMeshes(Scene *scene, Shader* shader)
+void PreDrawAllMeshes(Scene *scene, Shader* shader, DrawFlags drawFlags)
 {
     for (size_t i = 0; i < scene->gameObjects.data.size(); i++)
     {
@@ -389,6 +389,6 @@ void PreDrawAllMeshes(Scene *scene, Shader* shader)
 
         Transform* transform = gameObject->GetComponent<Transform>();
 
-        Graphics::PreDrawMesh(renderer->mesh, transform->GetModelMatrix(), shader ? shader : renderer->shader);
+        Graphics::PreDrawMesh(renderer->mesh, transform->GetModelMatrix(), shader ? shader : renderer->shader, drawFlags);
     }
 }
