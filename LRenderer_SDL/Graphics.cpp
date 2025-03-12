@@ -71,7 +71,7 @@ void Graphics::DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color)
 	pos.y() = (pos.y() + 1) * framebuffer->getHeight() / 2;
 
 
-	if (pos.z() < 0)
+	if (pos.z() < -1)
 	{
 		return;
 	}
@@ -151,12 +151,19 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 
 		// 齐次裁剪空间坐标
         bool valid = false;
-		float z[3];
 		Eigen::Vector4f clipPos[3];
+
+		// 观察空间深度，透视投影专用
+		Eigen::Vector3f verticesRealZ;
+
 		for (size_t j = 0; j < 3; j++)
 		{
 			clipPos[j] = v2fTemp[indexes[j]].vertex;
-			z[j] = clipPos[j].z();
+
+			if (camera->GetType() == Camera::Type::Perspective)
+			{
+				verticesRealZ[j] = clipPos[j].w();
+			}
 
 			float x = clipPos[j].x();
 			float y = clipPos[j].y();
@@ -177,19 +184,21 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 		}
 
 		// ndc
-		Eigen::Vector4f ndcTemp[3];
+		Eigen::Vector4f ndcPos[3];
 		for (size_t j = 0; j < 3; j++)
 		{
 			// 透视除法
-			ndcTemp[j] = clipPos[j] / clipPos[j].w();
+			ndcPos[j] = clipPos[j] / clipPos[j].w();
 		}
 
-		// 屏幕坐标
-		Eigen::Vector2f screenPosTemp[3];
+		// 屏幕坐标，z是0~1的深度
+		Eigen::Vector2f screenPos[3];
+		Eigen::Vector3f normalizedZ;
 		for (size_t j = 0; j < 3; j++)
 		{
-			screenPosTemp[j].x() = (ndcTemp[j].x() + 1) * framebuffer->getWidth() / 2;
-			screenPosTemp[j].y() = (ndcTemp[j].y() + 1) * framebuffer->getHeight() / 2;
+			screenPos[j].x() = (ndcPos[j].x() + 1) * framebuffer->getWidth() / 2;
+			screenPos[j].y() = (ndcPos[j].y() + 1) * framebuffer->getHeight() / 2;
+			normalizedZ[j] = (ndcPos[j].z() + 1) / 2;
 		}
 
 #pragma region DEBUG_画线
@@ -209,17 +218,17 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 #pragma endregion
 
 		Eigen::Vector2i aabbMin
-			= screenPosTemp[0]
-				.cwiseMin(screenPosTemp[1])
-				.cwiseMin(screenPosTemp[2])
+			= screenPos[0]
+				.cwiseMin(screenPos[1])
+				.cwiseMin(screenPos[2])
 				.cast<int>();
 
 		aabbMin = aabbMin.cwiseMax(Eigen::Vector2i(0, 0));
 
 		Eigen::Vector2i aabbMax
-			= screenPosTemp[0]
-				.cwiseMax(screenPosTemp[1])
-				.cwiseMax(screenPosTemp[2])
+			= screenPos[0]
+				.cwiseMax(screenPos[1])
+				.cwiseMax(screenPos[2])
 				.cast<int>();
 
 		aabbMax = aabbMax.cwiseMin(
@@ -241,42 +250,62 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 					// Eigen::Vector2f point = Eigen::Vector2f(x + 0.5f, y + 0.5f);
 					// point += GetSubpixelPointBias(x, y, subpixelIndex) + bias;
 
-					if (!MathUtils::InTriangle(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]))
+					if (!MathUtils::InTriangle(point, screenPos[0], screenPos[1], screenPos[2]))
 					{
 						continue;
 					}
 
 
 					Eigen::Vector3f barycentric =
-						MathUtils::Barycentric(point, screenPosTemp[0], screenPosTemp[1], screenPosTemp[2]);
+						MathUtils::Barycentric(point, screenPos[0], screenPos[1], screenPos[2]);
 
-					float zt = PCI::InterpolationZ(barycentric, z, isPerspective);
+					float z;
+					float pixelRealZ; // 透视投影专用
+					if (camera->GetType() == Camera::Type::Perspective)
+					{
+						pixelRealZ = PCI::InterpolationZ(barycentric, verticesRealZ);
+						z = pixelRealZ / camera->zFar;
+					}
+					else if (camera->GetType() == Camera::Type::Orthographic)
+					{
+						z = barycentric.dot(normalizedZ);
+					}
+					else
+					{
+						throw std::runtime_error("Camera::Type::Unknown");
+					}
 
-					if (zt < -camera->zNear)
+					if (z < 0)
 					{
 						continue;
 					}
 
-					if (zt > subpixel.z)
+					if (z > subpixel.z)
 					{
 						continue;
 					}
 
-					subpixel.z = zt;
+					subpixel.z = z;
+
+					Eigen::Matrix<float, 4, 3> verticesData;
 
 #pragma region Custom Shader
 					v2f o;
-					o.vertex = PCI::InterpolationVector(barycentric, z, zt, clipPos, isPerspective);
+					verticesData.col(0) = clipPos[0];
+					verticesData.col(1) = clipPos[1];
+					verticesData.col(2) = clipPos[2];
+
+					o.vertex = GraphicsUtils::InterpolationVector(
+						barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
 
 					for (size_t i = 0; i < shader->usedTexCount; i++)
 					{
-						Eigen::Vector4f texcoordTemp[3] = {
-							v2fTemp[indexes[0]].texcoords[i],
-							v2fTemp[indexes[1]].texcoords[i],
-							v2fTemp[indexes[2]].texcoords[i],
-						};
+						verticesData.col(0) = v2fTemp[indexes[0]].texcoords[i];
+						verticesData.col(1) = v2fTemp[indexes[1]].texcoords[i];
+						verticesData.col(2) = v2fTemp[indexes[2]].texcoords[i];
 
-						o.texcoords[i] = PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective);
+						o.texcoords[i] = GraphicsUtils::InterpolationVector(
+							barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
 					}
 
 					subpixel.v2f = o;
@@ -285,23 +314,22 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 
 #pragma region Builtin Shader
 					v2f oBuiltin;
-					Eigen::Vector4f worldPosTemp[3] = {
-						builtinV2fTemp[indexes[0]].vertex,
-						builtinV2fTemp[indexes[1]].vertex,
-						builtinV2fTemp[indexes[2]].vertex,
-					};
 
-					oBuiltin.vertex = PCI::InterpolationVector(barycentric, z, zt, worldPosTemp, isPerspective);
+					verticesData.col(0) = builtinV2fTemp[indexes[0]].vertex;
+					verticesData.col(1) = builtinV2fTemp[indexes[0]].vertex;
+					verticesData.col(2) = builtinV2fTemp[indexes[0]].vertex;
+
+					oBuiltin.vertex = GraphicsUtils::InterpolationVector(
+						barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
 
 					for (size_t i = 0; i < builtinShader->usedTexCount; i++)
 					{
-						Eigen::Vector4f texcoordTemp[3] = {
-							builtinV2fTemp[indexes[0]].texcoords[i],
-							builtinV2fTemp[indexes[1]].texcoords[i],
-							builtinV2fTemp[indexes[2]].texcoords[i],
-						};
+						verticesData.col(0) = builtinV2fTemp[indexes[0]].texcoords[i];
+						verticesData.col(1) = builtinV2fTemp[indexes[1]].texcoords[i];
+						verticesData.col(2) = builtinV2fTemp[indexes[2]].texcoords[i];
 
-						oBuiltin.texcoords[i] = PCI::InterpolationVector(barycentric, z, zt, texcoordTemp, isPerspective);
+						oBuiltin.texcoords[i] = GraphicsUtils::InterpolationVector(
+							barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
 					}
 
 					subpixel.builtinV2f = oBuiltin;
@@ -362,11 +390,19 @@ void Graphics::DrawSkybox(Shader* shader)
 	}
 
 	Eigen::Vector4f points[] = {
-		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f)* camera->zFar,
-		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f)* camera->zFar,
-		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f)* camera->zFar,
-		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f) * camera->zFar
+		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f),
+		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f),
+		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f),
+		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f) 
 	};
+
+	if (camera->GetType() == Camera::Type::Perspective)
+	{
+		for (size_t i = 0; i < 4; i++)
+		{
+			points[i] *= camera->zFar;
+		}
+	}
 
 	auto clipToWorld = camera->GetClipToWorldMatrix();
 	for (int i = 0; i < 4; i++)

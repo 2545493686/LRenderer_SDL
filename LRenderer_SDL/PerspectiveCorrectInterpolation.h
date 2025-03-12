@@ -3,30 +3,23 @@
 #include "Eigen/Dense"
 
 // 透视矫正插值 
+// 1 / ((a / z[0]) + (b / z[1]) + (c / z[2]))
 // https://zhuanlan.zhihu.com/p/144331875 孙小磊_计算机图形学六：透视矫正插值和图形渲染管线总结
 // LANQ 25.2.25
 class PerspectiveCorrectInterpolation
 {
 public:
-	EIGEN_ALWAYS_INLINE static float InterpolationZ(Eigen::Vector3f barycentric, float z[3], bool isPerspective)
+	EIGEN_ALWAYS_INLINE static float InterpolationZ(Eigen::Vector3f barycentric, Eigen::Vector3f realZ)
 	{
-		float a = barycentric.x();
-		float b = barycentric.y();
-		float c = barycentric.z();
-
-		if (isPerspective)
-		{
-			return 1 / ((a / z[0]) + (b / z[1]) + (c / z[2]));
-		}
-		else
-		{
-			return a * z[0] + b * z[1] + c * z[2];
-		}
+		Eigen::Vector3f inverseZ = realZ.cwiseInverse();
+		return 1 / barycentric.dot(inverseZ);
 	}
 
+
+	// 已废弃，使用 GraphicsUtils
 	// It = (a * Ia / Za + b * Ib / Zb + c * Ic / Zc) * zt
-	template <typename T>
-	EIGEN_ALWAYS_INLINE static T InterpolationVector(Eigen::Vector3f barycentric, float z[3], float zt, T vec[3], bool isPerspective)
+	template <typename T> 
+	EIGEN_ALWAYS_INLINE static T InterpolationVector(Eigen::Vector3f barycentric, Eigen::Vector3f z, float zt, T vec[3], bool isPerspective)
 	{
 		float a = barycentric.x();
 		float b = barycentric.y();

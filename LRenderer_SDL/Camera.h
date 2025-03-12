@@ -45,7 +45,7 @@ public:
 	{
 	}
 
-	Type GetType() const override
+	EIGEN_ALWAYS_INLINE Type GetType() const override
 	{
 		return Type::Perspective;
 	}
@@ -93,7 +93,7 @@ public:
 	{
 	}
 
-	Type GetType() const override
+	EIGEN_ALWAYS_INLINE Type GetType() const override
 	{
 		return Type::Orthographic;
 	}
@@ -113,7 +113,8 @@ public:
 
 		projection <<	1 / (aspect * size),	0,			0,						0,
 						0,						1 / size,	0,						0,
-						0,						0,			2 / (zFar - zNear),	(zFar + zNear) / (zFar - zNear),
+						//0,						0,			2 / (zFar - zNear),	(zFar + zNear) / (zFar - zNear),
+						0,						0,			-2 / (zFar - zNear),	-(zFar + zNear) / (zFar - zNear),
 						0,						0,			0,						1;
 
 		return projection;

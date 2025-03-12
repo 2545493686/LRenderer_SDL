@@ -18,6 +18,7 @@ public:
 	Eigen::Matrix4f frustumMatrix;
 	Eigen::Matrix4f modelToClipMatrix;
 	Eigen::Vector3f cameraWorldPos;
+	Eigen::Matrix4f clipToWorldMatrix;
 
 	DirectionalLightLightData* directionalLightDatas;
 	int directionalLightCount;

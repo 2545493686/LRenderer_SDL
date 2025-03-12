@@ -13,6 +13,7 @@
 #include "Camera.h"
 #include "EnvVariableCreater.h"
 #include "BuiltinShader.h"
+#include "GraphicsUtils.h"
 
 class Graphics
 {

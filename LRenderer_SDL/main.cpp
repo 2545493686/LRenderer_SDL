@@ -229,7 +229,8 @@ void ClearFramebuffer(Framebuffer* framebuffer)
 void Draw(Framebuffer *framebuffer, Scene *scene)
 {
 	static Transform *cameraTransform = new Transform();
-    static Camera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    //static OrthographicCamera* camera = new OrthographicCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    static PerspectiveCamera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
     
 #if CAMERA_MOVE
     float moveSpeed = 1.0f;
@@ -265,16 +266,16 @@ void Draw(Framebuffer *framebuffer, Scene *scene)
 
     Eigen::Vector3f lightForward = light->direction.head<3>().normalized();
 
-    static float t = 0;
 
-    t += 0.1f;
-    t = std::min(1.0f, t);
+    //auto target = scene->gameObjects.data[0]->GetComponent<Transform>()->position;
+    //auto dir = target - camera->transform->position;
 
-    camera->transform->position << Time::time, 0, 0;
-    //camera->transform->Rotate(0, 10, 0);
-
-    auto target = scene->gameObjects.data[0]->GetComponent<Transform>()->position;
-    camera->transform->rotation = Eigen::Quaternionf::FromTwoVectors(-Eigen::Vector3f::UnitZ(), target - camera->transform->position);
+    //camera->transform->position = sbb.center - lightForward * (sbb.radius + camera->zNear);
+    //camera->transform->rotation = Eigen::Quaternionf::FromTwoVectors(
+    //    -Eigen::Vector3f::UnitZ(),
+    //    lightForward
+    //);
+    //camera->size = sbb.radius * 2;
 
     auto cube = scene->gameObjects.data[0]->GetComponent<Transform>();
     cube->Rotate(10, 10, 0);

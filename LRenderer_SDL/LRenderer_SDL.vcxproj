@@ -170,6 +170,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="GraphicsSettings.cpp" />
+    <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="MeshLoader.cpp" />
@@ -207,6 +208,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="GraphicsSettings.h" />
+    <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="MeshLoader.h" />

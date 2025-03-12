@@ -1,10 +1,12 @@
-#include "BuiltinShader.h"
+﻿#include "BuiltinShader.h"
 
+// 输入 v.vertex 是裁剪空间坐标
+// 输出 o.vertex 是世界空间坐标
 v2f BuiltinShader::vertex(const appdata& v)
 {
     v2f o;
-
-    o.vertex = ShaderUtils::ToWorldPos(context, v.vertex);
+    
+    o.vertex = context->clipToWorldMatrix * v.vertex;
     usedTexCount = 0;
 
     return o;

@@ -8,6 +8,7 @@ EnvVariable* EnvVariableCreater::CreateEnvVariable(Camera *camera, const Eigen::
 	context->frustumMatrix = camera->GetFrustumMatrix();
 
 	context->modelToClipMatrix = context->frustumMatrix * context->viewMatrix * context->modelMatrix;
+	context->clipToWorldMatrix = (context->frustumMatrix * context->viewMatrix).inverse();
 
 	context->cameraWorldPos = camera->transform->position;
 
