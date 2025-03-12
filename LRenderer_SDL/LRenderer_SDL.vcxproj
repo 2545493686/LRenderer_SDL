@@ -148,6 +148,7 @@
     <None Include="..\.gitignore" />
     <None Include="..\vcpkg-configuration.json" />
     <None Include="..\vcpkg.json" />
+    <None Include="assets\plane.fbx" />
     <None Include="assets\skybox_default.exr" />
     <None Include="assets\sphere.fbx" />
     <None Include="README.md" />

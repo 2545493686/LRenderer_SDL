@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
 
 Mesh* cubeMesh;
 Mesh* sphereMesh;
+Mesh* planeMesh;
 Texture* uvTex;
 Cubemap* skybox;
 
@@ -119,6 +120,7 @@ void LoadAssets()
 {
     cubeMesh = MeshLoader::Load("assets\\cube.fbx");
     sphereMesh = MeshLoader::Load("assets\\sphere.fbx");
+    planeMesh = MeshLoader::Load("assets\\plane.fbx");
     uvTex = TextureLoader::LoadPNG("assets\\texture.png");
     skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
 }
@@ -178,6 +180,34 @@ Scene* CreateScene()
 #pragma endregion
 
     scene->AddGameObject(sphere);
+#pragma endregion
+
+
+#pragma region 平面
+    GameObject* plane = new GameObject();
+
+#pragma region Transform
+    Transform* planeTransform = new Transform();
+    planeTransform->position = Eigen::Vector3f(0, -2, -10);
+    planeTransform->scale = Eigen::Vector3f(8, 8, 8);
+    planeTransform->Rotate(-90, 0, 0);
+    plane->AddComponent(planeTransform);
+#pragma endregion
+
+#pragma region MeshRenderer
+    MeshRenderer* planeRenderer = new MeshRenderer(planeTransform);
+
+    planeRenderer->mesh = planeMesh;
+
+    // 默认着色器
+    BlinnPhongShader* planeShader = new BlinnPhongShader();
+    //planeShader->tex1 = uvTex;
+
+    planeRenderer->shader = planeShader;
+    plane->AddComponent(planeRenderer);
+#pragma endregion
+
+    scene->AddGameObject(plane);
 #pragma endregion
 
     return scene;
@@ -322,7 +352,7 @@ void Draw(DrawContext &context)
         -Eigen::Vector3f::UnitZ(),
         lightForward
     );
-    shadowCamera->size = sbb.radius * 2;
+    shadowCamera->size = sbb.radius * 1.1f;
 
     // 阴影 Framebuffer
     ClearShadowMap(context.shadowMap);
