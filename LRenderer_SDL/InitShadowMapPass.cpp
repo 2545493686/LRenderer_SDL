@@ -7,8 +7,10 @@ void InitShadowMapPass::init()
 
 void InitShadowMapPass::fragment(SubpixelData& pixelData)
 {
+	pixelData.tempData = 0;
+
 	// 生成阴影相机下的uv
-	auto worldPos = pixelData.builtinV2f.texcoords[0];
+	auto worldPos = pixelData.builtinV2f.vertex;
 	Eigen::Vector4f clipPos = worldToClipMatrix * worldPos;
 
 	float w = clipPos.w() * 1.01f;
@@ -30,13 +32,10 @@ void InitShadowMapPass::fragment(SubpixelData& pixelData)
 	uv.x() = (ndc.x() + 1) * shadowMap->getWidth() / 2;
     uv.y() = (ndc.y() + 1) * shadowMap->getHeight() / 2;
 
-	int x = MathUtils::Clamp(static_cast<int>(uv.x()), 0, shadowMap->getWidth() - 1);
-	int y = MathUtils::Clamp(static_cast<int>(uv.y()), 0, shadowMap->getHeight() - 1);
-
-	auto&shadowPixelData = shadowMap->pixelBuffer.referPixel(x, y);
+	auto&shadowPixelData = shadowMap->pixelBuffer.referPixel(uv.x(), uv.y());
 	
 	SubpixelData subpixel = SubpixelData(uv);
 	shadowPixelData.subpixels.push_back(subpixel);
 	
-	pixelData.shadowSubIndex = shadowPixelData.subpixels.size() - 1;
+	pixelData.tempData = shadowPixelData.subpixels.size() - 1;
 }

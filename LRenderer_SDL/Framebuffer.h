@@ -8,7 +8,6 @@
 #include "MathUtils.h"
 #include "GraphicsSettings.h"
 #include "GraphicsType.h"
-#include "Shader.h"
 
 template<typename T>
 class Buffer {
@@ -32,6 +31,7 @@ public:
 
     int width;
     int height;
+    int size;
     std::vector<T> frameBuffer;
 };
 
@@ -40,7 +40,8 @@ Buffer<T>::Buffer(int width, int height)
 {
     this->width = width;
     this->height = height;
-    this->frameBuffer.resize(width * height);
+    size = width * height;
+    this->frameBuffer.resize(size);
 }
 
 template<typename T>
@@ -53,21 +54,21 @@ template<typename T>
 T& Buffer<T>::referPixel(int x, int y)
 {
     y = height - y - 1;
-    return frameBuffer[y * width + x];
+    return frameBuffer[std::clamp(y * width + x, 0, size - 1)];
 }
 
 template<typename T>
 T Buffer<T>::getPixel(int x, int y)
 {
     y = height - y - 1;
-    return frameBuffer[y * width + x];
+    return frameBuffer[std::clamp(y * width + x, 0, size - 1)];
 }
 
 template<typename T>
 void Buffer<T>::putPixel(int x, int y, T color)
 {
     y = height - y - 1;
-    frameBuffer[y * width + x] = color;
+    frameBuffer[std::clamp(y * width + x, 0, size - 1)] = color;
 }
 
 // DDA算法绘制直线 TODO：Bresenham
@@ -141,7 +142,6 @@ public:
 
 template class Buffer<float>;
 template class Buffer<uint32_t>;
-
 
 class Framebuffer {
 public:

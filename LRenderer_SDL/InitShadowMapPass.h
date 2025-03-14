@@ -6,11 +6,11 @@
 class InitShadowMapPass : public PostprocessingPass
 {
 public:
-	Camera* camera;
-	Framebuffer* shadowMap;
+	Camera *camera;
+	Framebuffer *shadowMap;
 
 	virtual void init() override;
-	virtual void fragment(SubpixelData& pixelData) override;
+	virtual void fragment(SubpixelData &pixelData) override;
 
 private:
 	Eigen::Matrix4f worldToClipMatrix;

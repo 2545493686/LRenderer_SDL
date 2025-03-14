@@ -165,9 +165,9 @@
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="CubemapLoader.cpp" />
     <ClCompile Include="DepthTextureShader.cpp" />
-    <ClCompile Include="DirectionalLight.cpp" />
-    <ClCompile Include="EnvVariable.cpp" />
-    <ClCompile Include="EnvVariableCreater.cpp" />
+    <ClCompile Include="DirectVisibilityMapPass.cpp" />
+    <ClCompile Include="EnvContext.cpp" />
+    <ClCompile Include="EnvContextCreater.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Graphics.cpp" />
@@ -207,9 +207,9 @@
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="CubemapLoader.h" />
     <ClInclude Include="DepthTextureShader.h" />
-    <ClInclude Include="DirectionalLight.h" />
-    <ClInclude Include="EnvVariable.h" />
-    <ClInclude Include="EnvVariableCreater.h" />
+    <ClInclude Include="DirectVisibilityMapPass.h" />
+    <ClInclude Include="EnvContext.h" />
+    <ClInclude Include="EnvContextCreater.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Graphics.h" />

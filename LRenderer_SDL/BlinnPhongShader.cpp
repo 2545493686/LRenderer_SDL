@@ -24,12 +24,12 @@ Eigen::Vector4f BlinnPhongShader::fragment(const v2f& i)
     }
 
     Eigen::Vector4f diffuse = Eigen::Vector4f::Zero();
-    for (size_t i = 0; i < context->directionalLightCount; i++)
+    for (size_t i = 0; i < context->directionalLightDatas.size(); i++)
     {
         auto & lightData = context->directionalLightDatas[i];
 
         auto diffuseIntensity = MathUtils::Clamp(worldNormal.dot(-lightData.worldSpaceDirection), 0.0f, 1.0f);
-        Eigen::Vector4f color = lightData.color * diffuseIntensity;
+        Eigen::Vector4f color = lightData.color * diffuseIntensity * ShaderUtils::GetVisibility(context, lightData.lightIndex);
         diffuse += color;
     }
     diffuse = diffuse.cwiseProduct(this->diffuse);

@@ -1,30 +1,36 @@
 ﻿#pragma once
 
 #include "Eigen/Dense"
-#include "EnvVariable.h"
+#include "EnvContext.h"
+#include "Graphics.h"
 
-// 使用前先调用 SetContext 设置上下文
 class ShaderUtils
 {
 	ShaderUtils() = delete;
 
 public:
 	static EIGEN_ALWAYS_INLINE
-	Eigen::Vector4f ToClipPos(const EnvVariable* context, Eigen::Vector4f vertex)
+	Eigen::Vector4f ToClipPos(const EnvContext *context, Eigen::Vector4f vertex)
 	{
 		return context->modelToClipMatrix * vertex;
 	}
 
 	static EIGEN_ALWAYS_INLINE 
-	Eigen::Vector4f ToViewPos(const EnvVariable* context, Eigen::Vector4f vertex)
+	Eigen::Vector4f ToViewPos(const EnvContext *context, Eigen::Vector4f vertex)
 	{
 		return context->modelToViewMatrix * vertex;
 	}
 
 	static EIGEN_ALWAYS_INLINE
-	Eigen::Vector4f ToWorldPos(const EnvVariable* context, Eigen::Vector4f vertex)
+	Eigen::Vector4f ToWorldPos(const EnvContext *context, Eigen::Vector4f vertex)
 	{
 		return context->modelMatrix * vertex;
 	}
+
+	static EIGEN_ALWAYS_INLINE
+    float GetVisibility(const EnvContext *context, int lightIndex)
+    {
+		return Graphics::GetDirectVisibility(context->screenPosition, lightIndex);
+    }
 };
 

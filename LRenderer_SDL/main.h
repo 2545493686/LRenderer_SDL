@@ -34,12 +34,13 @@
 #include "Cubemap.h"
 #include "CubemapLoader.h"
 #include "CubemapShader.h"
-#include "DirectionalLight.h"
+#include "Light.h"
 #include "BlinnPhongShader.h"
 #include "SkyboxShader.h"
 #include "GraphicsSettings.h"
 #include "Time.h"
 #include "DepthTextureShader.h"
+#include "DirectVisibilityMapPass.h"
 
 struct DrawContext
 {
@@ -48,6 +49,8 @@ struct DrawContext
 
 	Scene *scene;
 	Framebuffer *shadowMap;
+
+	std::vector<Buffer<float> *> directVisibilityMap;
 };
 
 void LoadAssets();

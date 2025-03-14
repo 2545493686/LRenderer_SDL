@@ -1,21 +1,23 @@
 ﻿#include "Graphics.h"
+#include "Shader.h"
+#include "BuiltinShader.h"
 
 Shader *Graphics::builtinShader = new BuiltinShader();
 
 Mesh *Graphics::skyboxMesh = nullptr;
 Framebuffer *Graphics::framebuffer = nullptr;
-Buffer<TAAData>* Graphics::taaBuffer = nullptr;
-Camera* Graphics::camera = nullptr;
-Graphics::LightsList Graphics::lightsList;
+Buffer<TAAData> *Graphics::taaBuffer = nullptr;
+Camera *Graphics::camera = nullptr;
+std::vector<Graphics::LightInfo> Graphics::lights = std::vector<Graphics::LightInfo>();
 Eigen::Vector4f Graphics::ambientLightColor;
 bool Graphics::isPerspective;
 
 void Graphics::Clear()
 {
-	lightsList.Clear();
+	lights.clear();
 }
 
-void Graphics::SetCamera(Camera* camera)
+void Graphics::SetCamera(Camera *camera)
 {
 	Graphics::camera = camera;
 	isPerspective = camera->GetType() == Camera::Type::Perspective;
@@ -26,14 +28,38 @@ void Graphics::SetTAABuffer(Buffer<TAAData> *taabuffer)
 	Graphics::taaBuffer = taabuffer;
 }
 
-void Graphics::SetFramebuffer(Framebuffer* framebuffer)
+void Graphics::SetFramebuffer(Framebuffer *framebuffer)
 {
 	Graphics::framebuffer = framebuffer;
 }
 
-void Graphics::SetLight(DirectionalLight *light)
+void Graphics::SetLight(Light *light)
 {
-	lightsList.directionalLight.push_back(light);
+	LightInfo lightInfo = LightInfo();
+	lightInfo.light = light;
+
+	lights.push_back(lightInfo);
+}
+
+void Graphics::SetShadowMap(int lightIndex, Framebuffer *shadowMapBuffer, Camera *shadowCamera)
+{
+	if (lights.size() <= lightIndex)
+	{
+		throw new std::exception("error light index");
+	}
+
+	lights[lightIndex].shadowMapBuffer = shadowMapBuffer;
+	lights[lightIndex].shadowCamera = shadowCamera;
+}
+
+void Graphics::SetDirectVisibilityMap(int lightIndex, Buffer<float> *directVisibilityMap)
+{
+	if (lights.size() <= lightIndex)
+	{
+		throw new std::exception("error light index");
+	}
+
+	lights[lightIndex].directVisibilityMap = directVisibilityMap;
 }
 
 void Graphics::SetAmbientLightColor(Eigen::Vector4f color)
@@ -65,8 +91,8 @@ void Graphics::DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color)
 	pos << worldPosition, 1.0f;
 
 	pos = camera->GetFrustumMatrix() * camera->GetViewMatrix() * pos;
-	
-	if (!(pos.w() > 0 && pos.x() > -pos.w() && pos.x() < pos.w() 
+
+	if (!(pos.w() > 0 && pos.x() > -pos.w() && pos.x() < pos.w()
 		&& pos.y() > -pos.w() && pos.y() < pos.w()
 		&& pos.z() > -pos.w() && pos.z() < pos.w()))
 	{
@@ -90,37 +116,37 @@ void Graphics::DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color)
 		return;
 	}
 
-	auto& pixelData = framebuffer->pixelBuffer.referPixel(pos.x(), pos.y());
+	auto &pixelData = framebuffer->pixelBuffer.referPixel(pos.x(), pos.y());
 
 	for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 	{
-		auto& subpixel = pixelData.subpixels[subpixelIndex];
+		auto &subpixel = pixelData.subpixels[subpixelIndex];
 		subpixel.color = color;
 		subpixel.z = pos.z();
 	}
 }
 
-void Graphics::DrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader, DrawFlags drawFlags)
+void Graphics::DrawMesh(const Mesh *mesh, const Eigen::Matrix4f &modelMatrix, Shader *shader, DrawFlags drawFlags)
 {
 	PreDrawMesh(mesh, modelMatrix, shader, drawFlags);
-    DrawFullScreen();
+	DrawFullScreen();
 }
 
-void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix, Shader* shader, DrawFlags drawFlags)
+void Graphics::PreDrawMesh(const Mesh *mesh, const Eigen::Matrix4f &modelMatrix, Shader *shader, DrawFlags drawFlags)
 {
-	EnvVariable* context = EnvVariableCreater::CreateEnvVariable(camera, modelMatrix);
+	EnvContext *context = EnvContextCreater::CreateEnvVariable(camera, modelMatrix);
 
 	shader->DrawInit(context);
 	builtinShader->DrawInit(context);
 
 	appdata v;
-	v2f* v2fTemp = new v2f[mesh->verticesCount];
-	v2f* builtinV2fTemp = new v2f[mesh->verticesCount];
+	v2f *v2fTemp = new v2f[mesh->verticesCount];
+	v2f *builtinV2fTemp = new v2f[mesh->verticesCount];
 
 	for (size_t i = 0; i < mesh->verticesCount; i++)
 	{
 		v.vertex << mesh->vertices[i], 1.0f;
-		
+
 		if (mesh->uv0)
 		{
 			v.uv0 = mesh->uv0[i];
@@ -144,7 +170,7 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 
 		v2fTemp[i] = shader->vertex(v);
 		assert(v2fTemp[i].vertex.w() != 0);
-		
+
 		builtinV2fTemp[i] = builtinShader->vertex(v);
 	}
 
@@ -158,7 +184,7 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 		}
 
 		// 齐次裁剪空间坐标
-        bool valid = false;
+		bool valid = false;
 		Eigen::Vector4f clipPos[3];
 
 		// 观察空间深度，透视投影专用
@@ -178,10 +204,10 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 			float z = clipPos[j].z();
 			float w = clipPos[j].w() * 1.01f;
 
-			valid = valid || 
+			valid = valid ||
 				(clipPos[j].w() > 0 &&
-					x >= -w && x <= w && 
-					y >= -w && y <= w && 
+					x >= -w && x <= w &&
+					y >= -w && y <= w &&
 					z >= -w && z <= w);
 		}
 
@@ -227,17 +253,17 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 
 		Eigen::Vector2i aabbMin
 			= screenPos[0]
-				.cwiseMin(screenPos[1])
-				.cwiseMin(screenPos[2])
-				.cast<int>();
+			.cwiseMin(screenPos[1])
+			.cwiseMin(screenPos[2])
+			.cast<int>();
 
 		aabbMin = aabbMin.cwiseMax(Eigen::Vector2i(0, 0));
 
 		Eigen::Vector2i aabbMax
 			= screenPos[0]
-				.cwiseMax(screenPos[1])
-				.cwiseMax(screenPos[2])
-				.cast<int>();
+			.cwiseMax(screenPos[1])
+			.cwiseMax(screenPos[2])
+			.cast<int>();
 
 		aabbMax = aabbMax.cwiseMin(
 			Eigen::Vector2i(framebuffer->getWidth() - 1, framebuffer->getHeight() - 1));
@@ -246,11 +272,11 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 		{
 			for (int y = (int)aabbMin.y(); y <= (int)aabbMax.y(); y++)
 			{
-				auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+				auto &pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
 				for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 				{
-					auto&subpixel = pixelData.subpixels[subpixelIndex];
+					auto &subpixel = pixelData.subpixels[subpixelIndex];
 
 					Eigen::Vector2f point = subpixel.screenPosition;
 
@@ -302,7 +328,7 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 					{
 						Eigen::Matrix<float, 4, 3> verticesData;
 
-		#pragma region Custom Shader
+#pragma region Custom Shader
 						v2f o;
 						verticesData.col(0) = clipPos[0];
 						verticesData.col(1) = clipPos[1];
@@ -323,17 +349,19 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 
 						subpixel.v2f = o;
 						subpixel.shader = shader;
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Builtin Shader
+#pragma region Builtin Shader
 						v2f oBuiltin;
 
 						verticesData.col(0) = builtinV2fTemp[indexes[0]].vertex;
-						verticesData.col(1) = builtinV2fTemp[indexes[0]].vertex;
-						verticesData.col(2) = builtinV2fTemp[indexes[0]].vertex;
+						verticesData.col(1) = builtinV2fTemp[indexes[1]].vertex;
+						verticesData.col(2) = builtinV2fTemp[indexes[2]].vertex;
 
 						oBuiltin.vertex = GraphicsUtils::InterpolationVector(
 							barycentric, verticesRealZ, pixelRealZ, verticesData, camera->GetType());
+
+						//std::cout << oBuiltin.vertex << "\n";
 
 						for (size_t i = 0; i < builtinShader->usedTexCount; i++)
 						{
@@ -346,14 +374,14 @@ void Graphics::PreDrawMesh(const Mesh* mesh, const Eigen::Matrix4f& modelMatrix,
 						}
 
 						subpixel.builtinV2f = oBuiltin;
-		#pragma endregion
+#pragma endregion
 					}
 				}
 			}
 		}
 	}
 
-	EnvVariableCreater::ClearEnvVariable(context);
+	EnvContextCreater::ClearEnvVariable(context);
 }
 
 void Graphics::DrawPostprocessing(PostprocessingPass *pass)
@@ -365,7 +393,7 @@ void Graphics::DrawPostprocessing(PostprocessingPass *pass)
 	{
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
-			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+			auto &pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
 			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
@@ -378,7 +406,7 @@ void Graphics::DrawPostprocessing(PostprocessingPass *pass)
 
 void Graphics::DrawFullScreen()
 {
-	EnvVariable* context = EnvVariableCreater::CreateEnvVariable(camera, Eigen::Matrix4f::Identity());
+	EnvContext *context = EnvContextCreater::CreateEnvVariable(camera, Eigen::Matrix4f::Identity());
 
 
 	// 渲染
@@ -386,16 +414,19 @@ void Graphics::DrawFullScreen()
 	{
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
-			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+			auto &pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
 			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
-				auto& subpixel = pixelData.subpixels[subpixelIndex];
+				auto &subpixel = pixelData.subpixels[subpixelIndex];
 
 				if (!subpixel.shader)
 				{
 					continue;
 				}
+
+				context->worldPosition = subpixel.builtinV2f.vertex;
+				context->screenPosition = subpixel.screenPosition;
 
 				subpixel.shader->DrawInit(context);
 				auto color = subpixel.shader->fragment(subpixel.v2f);
@@ -409,20 +440,20 @@ void Graphics::DrawFullScreen()
 	{
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
-			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+			auto &pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
 			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
-				auto& subpixel = pixelData.subpixels[subpixelIndex];
+				auto &subpixel = pixelData.subpixels[subpixelIndex];
 				subpixel.shader = nullptr;
 			}
 		}
 	}
 
-	EnvVariableCreater::ClearEnvVariable(context);
+	EnvContextCreater::ClearEnvVariable(context);
 }
 
-void Graphics::DrawSkybox(Shader* shader)
+void Graphics::DrawSkybox(Shader *shader)
 {
 	if (skyboxMesh == nullptr)
 	{
@@ -433,7 +464,7 @@ void Graphics::DrawSkybox(Shader* shader)
 		Eigen::Vector4f(-1.0f, -1.0f, 1.0f, 1.0f),
 		Eigen::Vector4f(1.0f, -1.0f, 1.0f, 1.0f),
 		Eigen::Vector4f(1.0f, 1.0f, 1.0f, 1.0f),
-		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f) 
+		Eigen::Vector4f(-1.0f, 1.0f, 1.0f, 1.0f)
 	};
 
 	if (camera->GetType() == Camera::Type::Perspective)
@@ -447,7 +478,7 @@ void Graphics::DrawSkybox(Shader* shader)
 	auto clipToWorld = camera->GetClipToWorldMatrix();
 	for (int i = 0; i < 4; i++)
 	{
-        skyboxMesh->vertices[i] = (clipToWorld * points[i]).head<3>();
+		skyboxMesh->vertices[i] = (clipToWorld * points[i]).head<3>();
 	}
 
 	DrawMesh(skyboxMesh, Eigen::Matrix4f::Identity(), shader, DrawFlags_ALL);
@@ -459,19 +490,19 @@ void Graphics::DrawTAA()
 	{
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
-			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
-			auto& taaData = taaBuffer->referPixel(x, y);
+			auto &pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+			auto &taaData = taaBuffer->referPixel(x, y);
 
 			for (size_t subpixelIndex = 0; subpixelIndex < MSAA_TYPE; subpixelIndex++)
 			{
-				auto& subpixel = pixelData.subpixels[subpixelIndex];
-				auto& taaSubpixel = taaData.subpixels[subpixelIndex];
+				auto &subpixel = pixelData.subpixels[subpixelIndex];
+				auto &taaSubpixel = taaData.subpixels[subpixelIndex];
 
 				auto sampleCount = taaSubpixel.sampleCount;
 
 				subpixel.color = subpixel.color / float(sampleCount + 1)
 					+ taaSubpixel.historyColor * (sampleCount) / float(sampleCount + 1);
-				
+
 				taaSubpixel.historyColor = subpixel.color;
 				taaSubpixel.sampleCount++;
 			}
@@ -485,12 +516,12 @@ void Graphics::MergeSubpixelsAndWrite()
 	{
 		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
 		{
-			auto& pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+			auto &pixelData = framebuffer->pixelBuffer.referPixel(x, y);
 
 			Eigen::Vector4f colorTemp = Eigen::Vector4f::Zero();
 			for (size_t subpixelIndex = 0; subpixelIndex < pixelData.subpixels.size(); subpixelIndex++)
 			{
-				auto& subpixel = pixelData.subpixels[subpixelIndex];
+				auto &subpixel = pixelData.subpixels[subpixelIndex];
 				colorTemp += subpixel.color;
 			}
 
@@ -500,16 +531,52 @@ void Graphics::MergeSubpixelsAndWrite()
 	}
 }
 
+float Graphics::GetDirectVisibility(Eigen::Vector2f screenPos, int lightIndex)
+{
+	if (lights.size() <= lightIndex)
+	{
+		throw new std::exception("Light index out of range");
+	}
+
+	auto lightInfo = lights[lightIndex];
+
+	if (lightInfo.directVisibilityMap == nullptr)
+	{
+		return 1;
+	}
+
+	return lightInfo.directVisibilityMap->getPixel(screenPos.x(), screenPos.y());
+}
+
+// TODO
+float Graphics::GetVisibility(Eigen::Vector4f worldPos, int lightIndex)
+{
+	if (lights.size() <= lightIndex)
+	{
+		throw new std::exception("Light index out of range");
+	}
+
+	auto lightInfo = lights[lightIndex];
+
+	if (lightInfo.shadowCamera == nullptr || lightInfo.shadowMapBuffer == nullptr)
+	{
+		return 1;
+	}
+
+	Eigen::Vector4f viewPos = lightInfo.shadowCamera->GetViewMatrix() * worldPos;
+	// TODO:
+}
+
 void Graphics::CreateSkyboxMesh()
 {
 	skyboxMesh = new Mesh();
-	
+
 	skyboxMesh->vertices = new Eigen::Vector3f[4];
 	skyboxMesh->verticesCount = 4;
 
 	skyboxMesh->edges = new int[6] {
 		0, 1, 2,
-		2, 3, 0
+			2, 3, 0
 	};
 	skyboxMesh->edgesCount = 6;
 }

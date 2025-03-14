@@ -1,9 +1,28 @@
 ﻿#pragma once
 #include <vector>
+#include <cstdint>
 
-#include "Shader.h"
 #include "Eigen/Dense"
 #include "Color.h"
+#include "GraphicsSettings.h"
+
+class Shader;
+
+struct appdata
+{
+    Eigen::Vector4f vertex;
+    Eigen::Vector4f normal;
+    Eigen::Vector2f uv0;
+    Eigen::Vector2f uv1;
+    Eigen::Vector2f uv2;
+    Eigen::Vector2f uv3;
+};
+
+struct v2f
+{
+    Eigen::Vector4f vertex;
+    Eigen::Vector4f texcoords[V2F_TEX_COUNT];
+};
 
 struct SubpixelData
 {
@@ -13,13 +32,16 @@ struct SubpixelData
     Eigen::Vector4f color;
     float z;
 
-    int shadowSubIndex;
+    std::intptr_t tempData;
 
-    Shader* shader = nullptr; // 不为空表示片元有带渲染颜色
+    Shader *shader; // 不为空表示片元有带渲染颜色
     v2f builtinV2f;
     v2f v2f;
     
-    SubpixelData() {};
+    SubpixelData() 
+    {
+        shader = nullptr;
+    };
     SubpixelData(Eigen::Vector2f screenPosition);
     void Reset(Eigen::Vector2f screenPosition);
 };

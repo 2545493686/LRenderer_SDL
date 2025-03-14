@@ -56,6 +56,10 @@ int main(int argc, char* argv[]) {
     context.framebuffer = InitFramebuffer(WIDTH, HEIGHT);
     context.taaBuffer = InitTAABuffer(WIDTH, HEIGHT);
     context.shadowMap = new Framebuffer(4096, 4096);
+    
+    context.directVisibilityMap.resize(1);
+    context.directVisibilityMap[0] = new Buffer<float>(WIDTH, HEIGHT);
+    context.directVisibilityMap[0]->clear(1);
 
     LoadAssets();
     
@@ -357,21 +361,31 @@ void Draw(DrawContext &context)
     // 阴影 Framebuffer
     ClearShadowMap(context.shadowMap);
     
-    static InitShadowMapPass *initSdmPass = new InitShadowMapPass();
-    initSdmPass->camera = shadowCamera;
-    initSdmPass->shadowMap = context.shadowMap;
-    Graphics::DrawPostprocessing(initSdmPass);
+    static InitShadowMapPass *initShadowMapPass = new InitShadowMapPass();
+    initShadowMapPass->camera = shadowCamera;
+    initShadowMapPass->shadowMap = context.shadowMap;
+    Graphics::DrawPostprocessing(initShadowMapPass);
 
     Graphics::SetCamera(shadowCamera);
     Graphics::SetFramebuffer(context.shadowMap);
     
     static DepthTextureShader *depthTextureShader = new DepthTextureShader();
     PreDrawAllMeshes(scene, depthTextureShader, DrawFlags_ZBuffer);
+    Graphics::SetShadowMap(0, context.shadowMap, shadowCamera);
 
 #pragma endregion
 
     Graphics::SetCamera(camera);
     Graphics::SetFramebuffer(framebuffer);
+
+    // 导出直接阴影贴图
+    static DirectVisibilityMapPass *directVisibilityMapPass = new DirectVisibilityMapPass();
+    directVisibilityMapPass->directVisibilityMap = context.directVisibilityMap[0];
+    directVisibilityMapPass->shadowCamera = shadowCamera;
+    directVisibilityMapPass->shadowMapBuffer = context.shadowMap;
+    Graphics::DrawPostprocessing(directVisibilityMapPass);
+
+    Graphics::SetDirectVisibilityMap(0, context.directVisibilityMap[0]);
 
     // 绘制全屏
     Graphics::DrawFullScreen();

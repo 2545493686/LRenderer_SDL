@@ -1,18 +1,23 @@
 ﻿#pragma once
 
+#include <vector>
+
 #include "Eigen/Dense"
 
-struct DirectionalLightLightData
+struct DirectionalLightData
 {
+	int lightIndex;
+
 	// 已归一化
 	Eigen::Vector4f worldSpaceDirection;
 	Eigen::Vector4f color;
 	float intensity;
 };
 
-class EnvVariable
+class EnvContext
 {
 public:
+	// 管线常量，初始化时更新
 	float zNear;
 	float zFar;
 
@@ -24,8 +29,11 @@ public:
 	Eigen::Vector3f cameraWorldPos;
 	Eigen::Matrix4f clipToWorldMatrix;
 
-	DirectionalLightLightData* directionalLightDatas;
-	int directionalLightCount;
+	std::vector<DirectionalLightData> directionalLightDatas;
 
 	Eigen::Vector4f ambientLightColor;
+
+	// 像素常量，每次片元着色器调用前更新
+	Eigen::Vector4f worldPosition;
+	Eigen::Vector2f screenPosition;
 };
