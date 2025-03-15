@@ -331,10 +331,10 @@ void Draw(DrawContext &context)
 	Graphics::SetFramebuffer(framebuffer);
 	Graphics::SetTAABuffer(context.taaBuffer);
 
-	static DirectionalLight *light = new DirectionalLight();
-	light->direction = Eigen::Vector4f(-1, -1, -1, 0);
+	static DirectionalLight *directionalLight = new DirectionalLight();
+	directionalLight->direction = Eigen::Vector4f(-1, -1, -1, 0);
 
-	Graphics::SetLight(light);
+	Graphics::SetLight(directionalLight);
 
 	Eigen::Vector4f ambientLightColor = Color::MakeVector(Color::White) * 0.25f;
 	Graphics::SetAmbientLightColor(ambientLightColor);
@@ -347,7 +347,7 @@ void Draw(DrawContext &context)
 	// 阴影相机
 	auto sbb = scene->GetSphereBoudingBox();
 
-	Eigen::Vector3f lightForward = light->direction.head<3>().normalized();
+	Eigen::Vector3f lightForward = directionalLight->direction.head<3>().normalized();
 
 	Eigen::Vector3f tp = sbb.center - lightForward * (sbb.radius + camera->zNear + 1);
 	Graphics::DrawSphere(tp, 0.3f, Color::MakeVector(Color::Green));
@@ -388,6 +388,7 @@ void Draw(DrawContext &context)
 	directVisibilityMapPass->directVisibilityMap = context.directVisibilityMap[0];
 	directVisibilityMapPass->shadowCamera = shadowCamera;
 	directVisibilityMapPass->shadowMapBuffer = context.shadowMap;
+	directVisibilityMapPass->light = directionalLight;
 	Graphics::DrawPostprocessing(directVisibilityMapPass);
 
 	Graphics::SetDirectVisibilityMap(0, context.directVisibilityMap[0]);
