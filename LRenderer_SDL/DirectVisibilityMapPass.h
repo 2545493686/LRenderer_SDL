@@ -18,6 +18,7 @@ public:
 	void fragment(SubpixelData &pixelData) override;
 
 private:
+	float bias;
 	Eigen::Matrix4f worldToClipMatrix;
 };
 

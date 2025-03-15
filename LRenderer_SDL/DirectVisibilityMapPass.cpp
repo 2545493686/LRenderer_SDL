@@ -4,6 +4,7 @@
 
 void DirectVisibilityMapPass::init()
 {
+	bias = 0.1f / shadowCamera->zFar;
 	worldToClipMatrix = shadowCamera->GetFrustumMatrix() * shadowCamera->GetViewMatrix();
 }
 
@@ -36,13 +37,13 @@ void DirectVisibilityMapPass::fragment(SubpixelData &pixelData)
 
 	auto &shadowPixelData = shadowMapBuffer->pixelBuffer.referPixel(uv.x(), uv.y());
 	float tempZ = shadowPixelData.subpixels[pixelData.tempData].z;
-	
+
 	int x = static_cast<int>(pixelData.screenPosition.x());
     int y = static_cast<int>(pixelData.screenPosition.y());
 	float z = ((clipPos.z() / clipPos.w()) + 1) / 2;
 
-	//std::cout << "z: " << z << std::endl;
-	//std::cout << "temp z: " << tempZ << std::endl;
+	assert(z > 0);
+	assert(tempZ > 0);
 
-	directVisibilityMap->putPixel(x, y, z < (tempZ + 0.001f));
+	directVisibilityMap->putPixel(x, y, (z <= (tempZ + bias)));
 }

@@ -192,8 +192,8 @@ Scene* CreateScene()
 
 #pragma region Transform
     Transform* planeTransform = new Transform();
-    planeTransform->position = Eigen::Vector3f(0, -2, -10);
-    planeTransform->scale = Eigen::Vector3f(8, 8, 8);
+    planeTransform->position = Eigen::Vector3f(0, -1, -10);
+    planeTransform->scale = Eigen::Vector3f(9, 9, 9);
     planeTransform->Rotate(-90, 0, 0);
     plane->AddComponent(planeTransform);
 #pragma endregion
@@ -301,6 +301,9 @@ void Draw(DrawContext &context)
 	static Transform *cameraTransform = new Transform();
     //static OrthographicCamera* camera = new OrthographicCamera(cameraTransform, WIDTH / (float)HEIGHT);
     static PerspectiveCamera* camera = new PerspectiveCamera(cameraTransform, WIDTH / (float)HEIGHT);
+    camera->transform->rotation = Eigen::Quaternionf::Identity();
+    camera->transform->Rotate(-15, 0, 0);
+    camera->transform->position = Eigen::Vector3f(0, 3, 0);
     
 #if CAMERA_MOVE
     float moveSpeed = 1.0f;
@@ -378,7 +381,8 @@ void Draw(DrawContext &context)
     Graphics::SetCamera(camera);
     Graphics::SetFramebuffer(framebuffer);
 
-    // 导出直接阴影贴图
+    context.directVisibilityMap[0]->clear(1);
+
     static DirectVisibilityMapPass *directVisibilityMapPass = new DirectVisibilityMapPass();
     directVisibilityMapPass->directVisibilityMap = context.directVisibilityMap[0];
     directVisibilityMapPass->shadowCamera = shadowCamera;
