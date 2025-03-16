@@ -13,11 +13,12 @@
 #include "Camera.h"
 #include "EnvContextCreater.h"
 #include "GraphicsUtils.h"
-#include "PostprocessingPass.h"
 
 class Framebuffer;
 class Shader;
 class BuiltinShader;
+class PixelPostprocessingPass;
+class SubpixelPostprocessingPass;
 
 enum DrawFlags
 {
@@ -47,7 +48,8 @@ public:
 	static void DrawPoint(Eigen::Vector3f worldPosition, Eigen::Vector4f color);
 	static void DrawMesh(const Mesh *mesh, const Eigen::Matrix4f &modelMatrix, Shader *shader, DrawFlags drawFlags);
 	static void PreDrawMesh(const Mesh *mesh, const Eigen::Matrix4f &modelMatrix, Shader *shader, DrawFlags drawFlags);
-	static void DrawPostprocessing(PostprocessingPass *pass);
+	static void DrawPostprocessing(SubpixelPostprocessingPass *pass);
+	static void DrawPostprocessing(PixelPostprocessingPass *pass);
 	static void DrawFullScreen();
 
 	static void DrawSkybox(Shader *shader);

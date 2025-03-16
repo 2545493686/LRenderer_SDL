@@ -1,6 +1,7 @@
 ﻿#include "Graphics.h"
 #include "Shader.h"
 #include "BuiltinShader.h"
+#include "PostprocessingPass.h"
 
 Shader *Graphics::builtinShader = new BuiltinShader();
 
@@ -384,7 +385,23 @@ void Graphics::PreDrawMesh(const Mesh *mesh, const Eigen::Matrix4f &modelMatrix,
 	EnvContextCreater::ClearEnvVariable(context);
 }
 
-void Graphics::DrawPostprocessing(PostprocessingPass *pass)
+void Graphics::DrawPostprocessing(PixelPostprocessingPass *pass)
+{
+	pass->init();
+
+	// 渲染
+	for (int x = 0; x < framebuffer->pixelBuffer.getWidth(); x++)
+	{
+		for (int y = 0; y < framebuffer->pixelBuffer.getHeight(); y++)
+		{
+			auto &pixelData = framebuffer->pixelBuffer.referPixel(x, y);
+
+			pass->fragment(pixelData);
+		}
+	}
+}
+
+void Graphics::DrawPostprocessing(SubpixelPostprocessingPass *pass)
 {
 	pass->init();
 

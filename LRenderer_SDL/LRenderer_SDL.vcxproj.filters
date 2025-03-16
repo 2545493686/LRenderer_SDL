@@ -159,6 +159,9 @@
     <ClCompile Include="DirectVisibilityMapPass.cpp">
       <Filter>Source Files\PostprocessingPass</Filter>
     </ClCompile>
+    <ClCompile Include="MaximizeShadowMapPass.cpp">
+      <Filter>Source Files\PostprocessingPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -279,6 +282,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DirectVisibilityMapPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MaximizeShadowMapPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

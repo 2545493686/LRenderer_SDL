@@ -177,6 +177,7 @@
     <ClCompile Include="InitShadowMapPass.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MathUtils.cpp" />
+    <ClCompile Include="MaximizeShadowMapPass.cpp" />
     <ClCompile Include="MeshLoader.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="PerspectiveCorrectInterpolation.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="InitShadowMapPass.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MathUtils.h" />
+    <ClInclude Include="MaximizeShadowMapPass.h" />
     <ClInclude Include="MeshLoader.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="PerspectiveCorrectInterpolation.h" />

@@ -20,6 +20,9 @@ public:
 	Eigen::Vector4f color;
 	float intensity = 1;
 
+	float sunRadius = 7;
+	float sunDistance = 1496;
+
 	LightType GetLightType() override
 	{
 		return LightType::Directional;

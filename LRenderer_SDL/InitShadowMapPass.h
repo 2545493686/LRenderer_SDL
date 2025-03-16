@@ -3,7 +3,7 @@
 #include "Framebuffer.h"
 #include "Camera.h"
 
-class InitShadowMapPass : public PostprocessingPass
+class InitShadowMapPass : public SubpixelPostprocessingPass
 {
 public:
 	Camera *camera;

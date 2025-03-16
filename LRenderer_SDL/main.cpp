@@ -1,5 +1,6 @@
 ﻿#include "main.h"
 #include "InitShadowMapPass.h"
+#include "MaximizeShadowMapPass.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -375,6 +376,10 @@ void Draw(DrawContext &context)
 
 	static DepthTextureShader *depthTextureShader = new DepthTextureShader();
 	PreDrawAllMeshes(scene, depthTextureShader, DrawFlags_ZBuffer);
+
+	static MaximizeShadowMapPass *maximizeShadowMapPass = new MaximizeShadowMapPass();
+	Graphics::DrawPostprocessing(maximizeShadowMapPass);
+
 	Graphics::SetShadowMap(0, context.shadowMap, shadowCamera);
 
 #pragma endregion
