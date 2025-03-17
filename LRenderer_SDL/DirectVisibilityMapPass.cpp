@@ -8,6 +8,7 @@
 #include "Framebuffer.h"
 #include "Light.h"
 #include "Random.h"
+#include "Time.h"
 
 void DirectVisibilityMapPass::init()
 {
@@ -24,8 +25,9 @@ void DirectVisibilityMapPass::init()
 	if (lightType == LightType::Directional)
 	{
 		DirectionalLight *directionalLight = static_cast<DirectionalLight *>(light);
-		minRadius = std::sqrtf(1 / float(rayCount)) * directionalLight->sunRadius;
+		minRadius = directionalLight->sunRadius / std::powf(2, rayCount);
 		maxRadius = directionalLight->sunRadius;
+		directRatio = std::powf(minRadius / maxRadius, 2);
 	}
 }
 
@@ -139,14 +141,14 @@ void DirectVisibilityMapPass::fragment(SubpixelData &pixelData)
 
 	float bias = std::clamp((0.65f * floatError * k), 0.0f, maxBias);
 	
-	//int visibility = z <= (standardZ + bias);
-	//int visibilityCount = 1;
+	int directVisibility = z <= (standardZ + bias); //高精度采样
+	directVisibility *= directRatio;
 
 	int visibility = 0;
 	int visibilityCount = 0;
 
 	DirectionalLight *directionalLight = static_cast<DirectionalLight *>(light);
-	Eigen::Vector4f sunCenter = -lightDir * (directionalLight->sunDistance / 10);
+	Eigen::Vector4f sunCenter = -lightDir * (directionalLight->sunDistance / 15);
 	sunCenter.w() = 1;
 
 	static auto randomProvider = Random::InRange(0, 1);
@@ -154,12 +156,18 @@ void DirectVisibilityMapPass::fragment(SubpixelData &pixelData)
 	// 生成光线
 	if (lightType == LightType::Directional)
 	{
-		float sitaStep = 2 * M_PI / (rayCount - 1);
+		float sitaStep = 2 * M_PI / (rayCount);
+		float rStep = (maxRadius - minRadius) / rayCount;
 
 		for (size_t i = 0; i < rayCount; i++)
 		{
-			float r = (float(i) / (rayCount)) * (maxRadius);
-			float sita = randomProvider.Pop() * 2 * M_PI;
+			float sita = sitaStep * i + randomProvider.Pop() * sitaStep;
+			
+			float random = randomProvider.Pop();
+			random = 1 - sqrt(1 - random);
+			//random = sqrt(random);
+			
+			float r = minRadius + (random) * (maxRadius - minRadius);
 
 			Eigen::Vector4f rayBias = Eigen::Vector4f::Zero();
 			rayBias.x() = r * std::cosf(sita);
@@ -169,11 +177,12 @@ void DirectVisibilityMapPass::fragment(SubpixelData &pixelData)
 
 			Eigen::Vector4f ray = ((sunCenter + rayBias) - worldPos).normalized();
 
-			visibility += TestRayVisibility(worldPos, ray.normalized(), bias * 50.0f);
+			float rayVisibbility = TestRayVisibility(worldPos, ray.normalized(), bias * 50.0f);
+			visibility += rayVisibbility;
 			visibilityCount++;
 		}
 	}
 
-
-	directVisibilityMap->putPixel(x, y, static_cast<float>(visibility) / visibilityCount);
+	directVisibilityMap->putPixel(x, y, 
+		directVisibility + static_cast<float>(visibility) / visibilityCount);
 }

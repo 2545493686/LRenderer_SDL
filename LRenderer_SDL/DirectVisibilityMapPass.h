@@ -34,6 +34,7 @@ private:
 
 	float minRadius;
 	float maxRadius;
+	float directRatio;
 
 	Eigen::Matrix4f worldToClipMatrix;
 	Eigen::Matrix4f viewToWorld;
