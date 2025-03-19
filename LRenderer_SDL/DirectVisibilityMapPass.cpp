@@ -31,7 +31,8 @@ void DirectVisibilityMapPass::init()
 	}
 }
 
-bool DirectVisibilityMapPass::TestPointVisibility(const Eigen::Vector4f &worldPos)
+// 为假时 distance 被赋值为距离
+bool DirectVisibilityMapPass::TestPointVisibility(const Eigen::Vector4f &worldPos, float &distance)
 {
 	Eigen::Vector4f clipPos = worldToClipMatrix * worldPos;
 
@@ -59,6 +60,7 @@ bool DirectVisibilityMapPass::TestPointVisibility(const Eigen::Vector4f &worldPo
 	float standardZ = shadowPixelData.subpixels[0].z;
 
 	float z = ((clipPos.z() / clipPos.w()) + 1) / 2;
+	distance = z - standardZ;
 	return z <= standardZ;
 }
 
@@ -68,16 +70,24 @@ bool DirectVisibilityMapPass::TestRayVisibility(const Eigen::Vector4f &shaderPoi
 	float cameraDistance = (shadowCamera->transform->position - shaderPointWorldPos.head<3>()).norm() - basicBias;
 	float step = cameraDistance / (twoPowSampleCount);
 
-	if (!TestPointVisibility(shaderPointWorldPos + ray * basicBias))
+	float dis;
+	if (!TestPointVisibility(shaderPointWorldPos + ray * basicBias, dis))
 	{
-		return 0;
+		if (!TestPointVisibility(shaderPointWorldPos + ray * (basicBias + dis * 2 / 3), dis))
+		{
+			return 0;
+		}
 	}
 
 	for (size_t i = 0; i < raySampleCount - 1; i++)
 	{
-		if (!TestPointVisibility(shaderPointWorldPos + ray * step))
+		if (!TestPointVisibility(shaderPointWorldPos + ray * step, dis))
 		{
-			return 0;
+
+			if (!TestPointVisibility(shaderPointWorldPos + ray * (step + dis * 2 / 3), dis))
+			{
+				return 0;
+			}
 		}
 		
 		step *= 2;
@@ -148,7 +158,7 @@ void DirectVisibilityMapPass::fragment(SubpixelData &pixelData)
 	int visibilityCount = 0;
 
 	DirectionalLight *directionalLight = static_cast<DirectionalLight *>(light);
-	Eigen::Vector4f sunCenter = -lightDir * (directionalLight->sunDistance / 15);
+	Eigen::Vector4f sunCenter = -lightDir * (directionalLight->sunDistance / 17);
 	sunCenter.w() = 1;
 
 	static auto randomProvider = Random::InRange(0, 1);

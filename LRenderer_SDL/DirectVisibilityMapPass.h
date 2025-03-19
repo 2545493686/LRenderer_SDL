@@ -21,7 +21,7 @@ public:
 
 	// Inherited via PostprocessingPass
 	void init() override;
-	bool TestPointVisibility(const Eigen::Vector4f &worldPos);
+	bool TestPointVisibility(const Eigen::Vector4f &worldPos, float &distance);
 	bool TestRayVisibility(const Eigen::Vector4f &worldPos, const Eigen::Vector4f &ray, float basicBias);
 	void fragment(SubpixelData &pixelData) override;
 
