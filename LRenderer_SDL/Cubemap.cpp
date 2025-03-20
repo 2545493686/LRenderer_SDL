@@ -127,6 +127,11 @@ void Cubemap::DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::
     }
 }
 
+Eigen::Vector4f Cubemap::SampleFace(Face face, int x, int y) const
+{
+    return data[static_cast<int>(face)][y * size + x];
+}
+
 Eigen::Vector4f Cubemap::SampleFace(Face face, const Eigen::Vector2f & uv) const 
 {
     float x = uv.x() * size;

@@ -59,6 +59,7 @@ public:
     }
 
     Eigen::Vector4f SampleFace(Face face, const Eigen::Vector2f& uv) const;
+    Eigen::Vector4f SampleFace(Face face, int x, int y) const;
 
 private:
     void DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::Vector2f& uv) const;

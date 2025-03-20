@@ -1,8 +1,13 @@
 ﻿#include "main.h"
+
+#include <format>
+#include <string>
+
 #include "InitShadowMapPass.h"
 #include "MaximizeShadowMapPass.h"
 #include "IblBaker.h"
 #include "CookTorranceShader.h"
+#include "MipmapBaker.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -127,8 +132,28 @@ int main(int argc, char *argv[]) {
 	std::cout << "Save...\n";
 	CubemapLoader::SaveVerticalEXR("assets\\skybox_default_irradiance.exr", irradiance);
 
-#endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
 	std::cout << "Success.\n";
+#endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
+
+#if BOOT_MODE == BOOT_MIPMAPS_BAKER
+	std::cout << "Start Mipmaps Baker.\n";
+
+	auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
+
+	std::cout << "Bake Mipmaps...\n";
+	auto mipmaps = MipmapBaker::BakeMipmap(skybox);
+
+	for (size_t i = 1; i < mipmaps.size(); i++)
+	{
+		std::cout << std::format("Save Mipmap {}\n", i);
+
+		auto mipmap = mipmaps[i];
+        CubemapLoader::SaveVerticalEXR(std::format("assets\\skybox_default_mipmap_{}.exr", i).c_str(), mipmap);
+	}
+
+	std::cout << "Success.\n";
+
+#endif // BOOT_MODE == BOOT_MIPMAPS_BAKER
 
 	return 0;
 }
