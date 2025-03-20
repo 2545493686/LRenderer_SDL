@@ -10,6 +10,7 @@ Eigen::Vector4f Cubemap::Sample(const Eigen::Vector3f& direction) const
 }
 
 // deepseek 生成
+// 输出已归一化
 Eigen::Vector3f Cubemap::GetDirection(Face face, const Eigen::Vector2f &uv) const
 {
     // 原始 DetermineFaceAndUV 的 UV 计算规则：

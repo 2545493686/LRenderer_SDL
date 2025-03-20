@@ -1,4 +1,5 @@
 #pragma once
+#include <corecrt_math_defines.h>
 #include <random>
 
 #include "Eigen/Dense"
@@ -49,6 +50,26 @@ private:
 	std::uniform_real_distribution<float> dist;
 };
 
+class CircleRandomProvider : public RandomProvider<Eigen::Vector2f>
+{
+public:
+	CircleRandomProvider(float radius) : radius(radius)
+	{
+		dist = std::uniform_real_distribution<float>(0, radius);
+	}
+
+	Eigen::Vector2f Pop() override
+	{
+		float r = radius * std::sqrtf(dist(this->engine));
+		float theta = dist(this->engine) * 2 * M_PI;
+        return Eigen::Vector2f(r * std::cosf(theta), r * std::sinf(theta));
+	}
+
+private:
+	std::uniform_real_distribution<float> dist;
+	float radius;
+};
+
 class Random
 {
 public:
@@ -60,5 +81,10 @@ public:
 	EIGEN_ALWAYS_INLINE static RangeRandomProvider InRange(float minIncludedValue, float maxIncludedValue)
 	{
 		return RangeRandomProvider(minIncludedValue, maxIncludedValue);
+	}
+
+	EIGEN_ALWAYS_INLINE static CircleRandomProvider InCircle(float radius)
+	{
+		return CircleRandomProvider(radius);
 	}
 };
