@@ -1,6 +1,7 @@
 ﻿#include "main.h"
 #include "InitShadowMapPass.h"
 #include "MaximizeShadowMapPass.h"
+#include "IblBaker.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -115,13 +116,15 @@ int main(int argc, char *argv[]) {
 #endif // BOOT_MODE == BOOT_GAME
 
 #if BOOT_MODE == BOOT_IRRADIANCE_BAKER
-	std::cout << "Start Irradiance Baking.\n";
+	std::cout << "Start Irradiance Baker.\n";
 
 	auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
 
+	std::cout << "Bake Irradiance...\n";
+	auto irradiance = IblBaker::BakeIrradiance(skybox);
 
 	std::cout << "Save...\n";
-	CubemapLoader::SaveVerticalEXR("assets\\skybox_default_irradiance.exr", skybox);
+	CubemapLoader::SaveVerticalEXR("assets\\skybox_default_irradiance.exr", irradiance);
 
 #endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
 	std::cout << "Success.\n";

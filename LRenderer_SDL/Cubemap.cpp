@@ -1,4 +1,4 @@
-#include "Cubemap.h"
+﻿#include "Cubemap.h"
 
 Eigen::Vector4f Cubemap::Sample(const Eigen::Vector3f& direction) const
 {
@@ -9,6 +9,86 @@ Eigen::Vector4f Cubemap::Sample(const Eigen::Vector3f& direction) const
     return SampleFace(face, uv);
 }
 
+// deepseek 生成
+Eigen::Vector3f Cubemap::GetDirection(Face face, const Eigen::Vector2f &uv) const
+{
+    // 原始 DetermineFaceAndUV 的 UV 计算规则：
+    // - X±面：存在 UV 翻转逻辑
+    // - Y±面：V坐标方向特殊处理
+    // - Z±面：U坐标有反向操作
+
+    const float u = std::clamp(uv.x(), 0.0f, 1.0f);
+    const float v = 1.0f - std::clamp(uv.y(), 0.0f, 1.0f);
+
+    switch (face)
+    {
+        // 每个面的计算都严格逆向推导自 DetermineFaceAndUV
+    case Face::NegX: // X+方向（原逻辑中 dir.x() > 0）
+    {
+        // 原式：uv.x() = (dir.z/(dir.x) + 1)/2 → dir.z = (2u -1)*dir.x
+        //        uv.y() = 1 - (dir.y/dir.x +1)/2 → dir.y = (1 - 2*(1-v) -1)*dir.x = (2v -1)*dir.x
+        const float dir_x = 1.0f;
+        const float dir_y = 2 * v - 1.0f;  // 修复Y分量上下颠倒
+        const float dir_z = 2 * u - 1.0f;  // 修复X+左右颠倒
+        return Eigen::Vector3f(dir_x, dir_y, dir_z).normalized();
+    }
+
+    case Face::PosX: // X-方向（dir.x() < 0）
+    {
+        // 原式：uv.x() = 1 - [(dir.z/(-dir.x) +1)/2] → dir.z = (1 - 2u)*(-dir.x)
+        //        uv.y() = 1 - (dir.y/(-dir.x) +1)/2 → dir.y = (2v -1)*(-dir.x)
+        const float dir_x = -1.0f;
+        const float dir_y = (2 * v - 1.0f); // 修复Y分量上下颠倒
+        const float dir_z = (1.0f - 2 * u) * (-dir_x); // 修复X-左右颠倒
+        return Eigen::Vector3f(dir_x, dir_y, dir_z).normalized();
+    }
+
+    case Face::PosY: // Y+方向（dir.y() > 0）
+    {
+        // 原式：uv.x() = 1 - (dir.x/dir.y +1)/2 → dir.x = (1 - 2u)*dir.y
+        //        uv.y() = 1 - (-dir.z/dir.y +1)/2 → dir.z = (2v -1)*(-dir.y)
+        const float dir_y = 1.0f;
+        const float dir_x = (1.0f - 2 * u) * dir_y;  // 修复X分量左右颠倒
+        const float dir_z = (2 * v - 1.0f) * (-dir_y);
+        return Eigen::Vector3f(dir_x, dir_y, dir_z).normalized();
+    }
+
+    case Face::NegY: // Y-方向（dir.y() < 0）
+    {
+        // 原式：uv.y() = 1 - (dir.z/(-dir.y) +1)/2 → dir.z = (2v -1)*(-dir.y)
+        //        uv.x() = 1 - (dir.x/(-dir.y) +1)/2 → dir.x = (2u -1)*(-dir.y)
+        const float dir_y = -1.0f;
+        const float dir_x = -(2 * u - 1.0f); // 修复X分量左右颠倒
+        const float dir_z = (2 * v - 1.0f); // 修复Z分量上下颠倒
+        return Eigen::Vector3f(dir_x, dir_y, dir_z).normalized();
+    }
+
+    case Face::PosZ: // Z+方向（dir.z() > 0）
+    {
+        // 原式：uv.x() = (-dir.x/dir.z +1)/2 → dir.x = (1 - 2u)*dir.z
+        //        uv.y() = 1 - (dir.y/dir.z +1)/2 → dir.y = (2v -1)*dir.z
+        const float dir_z = 1.0f;
+        const float dir_x = (1.0f - 2 * u) * dir_z;  // 修复X分量左右颠倒
+        const float dir_y = (2 * v - 1.0f) * dir_z;  // 修复Y分量上下颠倒
+        return Eigen::Vector3f(dir_x, dir_y, dir_z).normalized();
+    }
+
+    case Face::NegZ: // Z-方向（dir.z() < 0）
+    {
+        // 原式：uv.x() = 1 - [(-dir.x/(-dir.z) +1)/2] → dir.x = (2u -1)*(-dir.z)
+        //        uv.y() = 1 - (dir.y/(-dir.z) +1)/2 → dir.y = (2v -1)*(-dir.z)
+        const float dir_z = -1.0f;
+        const float dir_x = (2 * u - 1.0f) * (-dir_z); // 修复X分量左右颠倒
+        const float dir_y = (2 * v - 1.0f) * (-dir_z); // 修复Y分量上下颠倒
+        return Eigen::Vector3f(dir_x, dir_y, dir_z).normalized();
+    }
+
+    default:
+        throw std::runtime_error("Invalid cubemap face");
+    }
+}
+
+// deepseek 生成，已修改
 void Cubemap::DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::Vector2f& uv) const
 {
     const Eigen::Vector3f absDir = dir.cwiseAbs();

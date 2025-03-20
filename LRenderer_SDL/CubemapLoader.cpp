@@ -4,6 +4,7 @@
 #include "CubemapLoader.h"
 #include <ImfChannelList.h> // Add this include
 #include <ImfOutputFile.h>  // Add this include
+#include <ImfStringAttribute.h>
 
 // deepseek 生成
 void CubemapLoader::SaveVerticalEXR(const char *path, const Cubemap *cubemap)
@@ -17,6 +18,10 @@ void CubemapLoader::SaveVerticalEXR(const char *path, const Cubemap *cubemap)
         Imath::Box2i dataWindow(Imath::V2i(0, 0), Imath::V2i(size - 1, totalHeight - 1));
         header.dataWindow() = dataWindow;
         header.displayWindow() = dataWindow;
+
+        // 在头文件中添加方向属性
+        Imf::StringAttribute faceDirections("+X,-X,+Y,-Y,+Z,-Z"); // 根据实际顺序调整
+        header.insert("faceDirections", faceDirections);
 
         // 添加RGBA通道（32位浮点）
         header.channels().insert("R", Imf::Channel(Imf::FLOAT));

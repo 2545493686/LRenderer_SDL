@@ -25,14 +25,37 @@ public:
     int size = 0;
 
     Eigen::Vector4f Sample(const Eigen::Vector3f& direction) const;
+    Eigen::Vector3f GetDirection(Face face, const Eigen::Vector2f& uv) const;
+
+    // deepseek 生成
+    EIGEN_ALWAYS_INLINE void PutPixel(Face face, const Eigen::Vector2f& uv, const Eigen::Vector4f& color)
+    {
+        // Clamp UV坐标到[0, 1]范围
+        float u = std::clamp(uv.x(), 0.0f, 1.0f);
+        float v = std::clamp(uv.y(), 0.0f, 1.0f);
+
+        // 计算对应的像素坐标
+        float x = u * size;
+        float y = v * size;
+
+        // 转换为整数坐标并进行Clamp处理
+        int x0 = static_cast<int>(x);
+        int y0 = static_cast<int>(y);
+        x0 = std::max(0, std::min(size - 1, x0));
+        y0 = std::max(0, std::min(size - 1, y0));
+
+        // 写入颜色到对应的面数据
+        data[static_cast<int>(face)][y0 * size + x0] = color;
+    }
 
     EIGEN_ALWAYS_INLINE int GetSize() const 
     { 
         return size; 
     }
 
+    Eigen::Vector4f SampleFace(Face face, const Eigen::Vector2f& uv) const;
+
 private:
     void DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::Vector2f& uv) const;
-    Eigen::Vector4f SampleFace(Face face, const Eigen::Vector2f& uv) const;
 };
 
