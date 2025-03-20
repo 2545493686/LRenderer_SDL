@@ -230,7 +230,7 @@ Scene *CreateScene()
 	auto *planeShader = new CookTorranceShader();
 	//planeShader->tex1 = uvTex;
 	planeShader->irradianceTex = skyboxIrradiance;
-	planeShader->diffuse << 0.9, 0.9, 0.9, 1;
+	//planeShader->diffuse << 0.9, 0.9, 0.9, 1;
 
 	planeRenderer->shader = planeShader;
 	plane->AddComponent(planeRenderer);

@@ -49,7 +49,7 @@ Eigen::Vector4f CookTorranceShader::fragment(const v2f &i)
     
     // 垂直入射反射率
     auto F0 = MathUtils::Lerp(vec4(0.04f), albedo, metallic);
-    Eigen::Vector4f F = F0 + (vec4(1) - F0) * std::powf(vDotN, 5);
+    Eigen::Vector4f F = F0 + (vec4(1) - F0) * std::powf(1 - vDotN, 5);
 
     Eigen::Vector4f kd = (vec4(1) - F) * (1 - metallic);
     
