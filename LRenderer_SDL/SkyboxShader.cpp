@@ -15,9 +15,9 @@ v2f SkyboxShader::vertex(const appdata& v)
 Eigen::Vector4f SkyboxShader::fragment(const v2f& i)
 {
     //Eigen::Vector3f f = i.texcoords[0].head<3>() - context->cameraWorldPos;
-    Eigen::Vector3f f = context->worldPosition.head<3>() - context->cameraWorldPos;
+    Eigen::Vector4f f = context->worldPosition - context->cameraWorldPos;
 
-    auto color = tex1->Sample(f);;
+    auto color = tex1->Sample(f.head<3>());;
 
     color = color.array().pow(1.8f);
     return color;

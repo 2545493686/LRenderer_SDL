@@ -443,6 +443,7 @@ void Graphics::DrawFullScreen()
 				}
 
 				context->worldPosition = subpixel.builtinV2f.vertex;
+				context->worldNormal = subpixel.builtinV2f.texcoords[0];
 				context->screenPosition = subpixel.screenPosition;
 
 				subpixel.shader->DrawInit(context);

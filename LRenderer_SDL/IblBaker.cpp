@@ -1,9 +1,11 @@
 ﻿#include "IblBaker.h"
 
+#include <iostream>
 #include <omp.h>
 
 #include "Cubemap.h"
 #include "Random.h"
+#include "MathUtils.h"
 
 Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 {
@@ -21,19 +23,22 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 				for (int j = 0; j < output->GetSize(); j++)
 				{
 					Eigen::Vector2f uv;
-					uv.x() = static_cast<float>(i) / output->GetSize();
-					uv.y() = static_cast<float>(j) / output->GetSize();
+					uv.x() = static_cast<float>(j) / output->GetSize();
+					uv.y() = static_cast<float>(i) / output->GetSize();
 
 					auto dir = output->GetDirection(static_cast<Cubemap::Face>(face), uv);
-					Eigen::Vector3f tempDir = dir + Eigen::Vector3f::Ones();
-
 					Eigen::Matrix3f tangentSpace;
-					tangentSpace.col(0) = dir.cross(tempDir).normalized();
-					tangentSpace.col(1) = tangentSpace.col(0).cross(dir).normalized();
+					Eigen::Vector3f up = dir + vec3(1);
+					Eigen::Vector3f tangent = dir.cross(up).normalized();
+					Eigen::Vector3f bitangent = dir.cross(tangent).normalized();
+					
+					tangentSpace.col(0) = tangent;
+					tangentSpace.col(1) = bitangent;
 					tangentSpace.col(2) = dir;
 
-					int sampleCount = 4096 * 16;
-					Eigen::Vector4f color = Eigen::Vector4f::Zero();
+					int sampleCount = 4096;
+					Eigen::Vector4d color = Eigen::Vector4d::Zero();
+					int realSampleCount = 0;
 					for (size_t k = 0; k < sampleCount; k++)
 					{
 						auto randomVectorInCircle = randomProvider.Pop();
@@ -41,11 +46,21 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 
 						Eigen::Vector3f sampleVector;
 						sampleVector << randomVectorInCircle, z;
+						sampleVector = sampleVector.normalized();
 						sampleVector = tangentSpace * sampleVector;
-						color += input->Sample(sampleVector) / sampleCount;
+						
+						Eigen::Vector4d sampleColor = input->Sample(sampleVector).cast<double>();
+						MathUtils::ClampVector4(sampleColor, 0.0, 10.0);
+
+						color = sampleColor / static_cast<double>(realSampleCount + 1)
+							+ color * static_cast<double>(realSampleCount) / static_cast<double>(realSampleCount + 1);
+						
+						realSampleCount++;
+						assert(MathUtils::IsNan(color));
 					}
 
-					output->PutPixel(static_cast<Cubemap::Face>(face), uv, color);
+
+					output->PutPixel(static_cast<Cubemap::Face>(face), j, i, color.cast<float>());
 				}
 			}
 		}

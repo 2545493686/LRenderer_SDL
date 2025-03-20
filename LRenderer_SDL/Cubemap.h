@@ -27,6 +27,11 @@ public:
     Eigen::Vector4f Sample(const Eigen::Vector3f& direction) const;
     Eigen::Vector3f GetDirection(Face face, const Eigen::Vector2f& uv) const;
 
+    EIGEN_ALWAYS_INLINE void PutPixel(Face face, int x, int y, const Eigen::Vector4f &color)
+    {
+        data[static_cast<int>(face)][y * size + x] = color;
+    }
+
     // deepseek 生成
     EIGEN_ALWAYS_INLINE void PutPixel(Face face, const Eigen::Vector2f& uv, const Eigen::Vector4f& color)
     {

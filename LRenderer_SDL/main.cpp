@@ -2,6 +2,7 @@
 #include "InitShadowMapPass.h"
 #include "MaximizeShadowMapPass.h"
 #include "IblBaker.h"
+#include "CookTorranceShader.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -137,6 +138,7 @@ Mesh *sphereMesh;
 Mesh *planeMesh;
 Texture *uvTex;
 Cubemap *skybox;
+Cubemap *skyboxIrradiance;
 
 void LoadAssets()
 {
@@ -145,6 +147,7 @@ void LoadAssets()
 	planeMesh = MeshLoader::Load("assets\\plane.fbx");
 	uvTex = TextureLoader::LoadPNG("assets\\texture.png");
 	skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
+	skyboxIrradiance = CubemapLoader::LoadVerticalEXR("assets\\skybox_default_irradiance_128.exr");
 }
 
 Scene *CreateScene()
@@ -168,8 +171,9 @@ Scene *CreateScene()
 	meshRenderer->mesh = cubeMesh;
 
 	// 默认着色器
-	BlinnPhongShader *meshShader = new BlinnPhongShader();
+	auto *meshShader = new CookTorranceShader();
 	meshShader->tex1 = uvTex;
+	meshShader->irradianceTex = skyboxIrradiance;
 
 	meshRenderer->shader = meshShader;
 	cube->AddComponent(meshRenderer);
@@ -194,9 +198,10 @@ Scene *CreateScene()
 	sphereRenderer->mesh = sphereMesh;
 
 	// 默认着色器
-	BlinnPhongShader *sphereShader = new BlinnPhongShader();
+	auto *sphereShader = new CookTorranceShader();
 	//sphereShader->tex1 = uvTex;
-
+	sphereShader->irradianceTex = skyboxIrradiance;
+	
 	sphereRenderer->shader = sphereShader;
 	sphere->AddComponent(sphereRenderer);
 #pragma endregion
@@ -222,8 +227,10 @@ Scene *CreateScene()
 	planeRenderer->mesh = planeMesh;
 
 	// 默认着色器
-	BlinnPhongShader *planeShader = new BlinnPhongShader();
+	auto *planeShader = new CookTorranceShader();
 	//planeShader->tex1 = uvTex;
+	planeShader->irradianceTex = skyboxIrradiance;
+	planeShader->diffuse << 0.9, 0.9, 0.9, 1;
 
 	planeRenderer->shader = planeShader;
 	plane->AddComponent(planeRenderer);
@@ -368,7 +375,7 @@ void Draw(DrawContext &context)
 	Eigen::Vector3f lightForward = directionalLight->direction.head<3>().normalized();
 
 	Eigen::Vector3f tp = sbb.center - lightForward * (sbb.radius + camera->zNear + 1);
-	Graphics::DrawSphere(tp, 0.3f, Color::MakeVector(Color::Green));
+	//Graphics::DrawSphere(tp, 0.3f, Color::MakeVector(Color::Green));
 
 	static Transform *shadowCameraTransform = new Transform();
 	static OrthographicCamera *shadowCamera = new OrthographicCamera(shadowCameraTransform, WIDTH / (float)HEIGHT);
@@ -426,7 +433,7 @@ void Draw(DrawContext &context)
 	Graphics::DrawTAA();
 #endif // !CAMERA_MOVE
 
-	Graphics::DrawSphere(sbb.center, sbb.radius, Color::MakeVector(Color::Red));
+	//Graphics::DrawSphere(sbb.center, sbb.radius, Color::MakeVector(Color::Red));
 
 	Graphics::MergeSubpixelsAndWrite();
 

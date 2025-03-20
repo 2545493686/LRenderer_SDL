@@ -26,7 +26,7 @@ public:
 	Eigen::Matrix4f frustumMatrix;
 	Eigen::Matrix4f modelToClipMatrix;
 	Eigen::Matrix4f modelToViewMatrix;
-	Eigen::Vector3f cameraWorldPos;
+	Eigen::Vector4f cameraWorldPos;
 	Eigen::Matrix4f clipToWorldMatrix;
 
 	std::vector<DirectionalLightData> directionalLightDatas;
@@ -36,4 +36,5 @@ public:
 	// 像素常量，每次片元着色器调用前更新
 	Eigen::Vector4f worldPosition;
 	Eigen::Vector2f screenPosition;
+	Eigen::Vector4f worldNormal;
 };

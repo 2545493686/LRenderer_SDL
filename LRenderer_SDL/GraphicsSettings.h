@@ -7,7 +7,7 @@ constexpr auto V2F_TEX_COUNT = 6;
 
 #define BOOT_GAME 0
 #define BOOT_IRRADIANCE_BAKER 1
-#define BOOT_MODE BOOT_IRRADIANCE_BAKER
+#define BOOT_MODE BOOT_GAME
 
 #define SUBPIXEL_BIAS 1
 #define DEBUG_COUNT 0

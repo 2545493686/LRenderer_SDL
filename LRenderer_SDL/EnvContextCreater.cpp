@@ -12,7 +12,7 @@ EnvContext *EnvContextCreater::CreateEnvVariable(Camera *camera, const Eigen::Ma
 	context->modelToViewMatrix = context->viewMatrix * context->modelMatrix;
 	context->clipToWorldMatrix = (context->frustumMatrix * context->viewMatrix).inverse();
 
-	context->cameraWorldPos = camera->transform->position;
+	context->cameraWorldPos << camera->transform->position, 1.0f;
 
 	context->zNear = camera->zNear;
 	context->zFar = camera->zFar;

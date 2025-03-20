@@ -162,6 +162,12 @@
     <ClCompile Include="MaximizeShadowMapPass.cpp">
       <Filter>Source Files\PostprocessingPass</Filter>
     </ClCompile>
+    <ClCompile Include="IblBaker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CookTorranceShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -285,6 +291,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MaximizeShadowMapPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CookTorranceShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IblBaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
