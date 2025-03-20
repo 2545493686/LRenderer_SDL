@@ -4,12 +4,12 @@
   "builtin-baseline": "ab42fb3032acd29dd12cea7897f85025526a60e6",
   "dependencies": [
     "assimp",
+    "cppcoro",
     "eigen3",
     "fmt",
-    "sdl2",
-    "spdlog",
-    "sdl2-image",
     "openexr",
-    "cppcoro"
+    "sdl2",
+    "sdl2-image",
+    "spdlog"
   ]
 }
