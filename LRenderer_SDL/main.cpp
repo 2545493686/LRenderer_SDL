@@ -24,6 +24,7 @@ EIGEN_ALWAYS_INLINE Eigen::Vector2f GetSubpixelPointBias(int x, int y, int subpi
 
 int main(int argc, char *argv[]) {
 
+#if BOOT_MODE == BOOT_GAME
 	// 日志系统
 	auto file_logger = spdlog::basic_logger_mt("file_logger", "logs/main_log.txt");
 	spdlog::set_default_logger(file_logger);
@@ -111,6 +112,19 @@ int main(int argc, char *argv[]) {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+#endif // BOOT_MODE == BOOT_GAME
+
+#if BOOT_MODE == BOOT_IRRADIANCE_BAKER
+	std::cout << "Start Irradiance Baking.\n";
+
+	auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
+
+
+	std::cout << "Save...\n";
+	CubemapLoader::SaveVerticalEXR("assets\\skybox_default_irradiance.exr", skybox);
+
+#endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
+	std::cout << "Success.\n";
 
 	return 0;
 }

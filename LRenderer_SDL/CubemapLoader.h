@@ -12,7 +12,8 @@ class CubemapLoader {
 public:
     // 输入文件是纵向排列的6张Cubemap
     // x+  x-  y+  y-  z+  z-
-    static Cubemap* LoadVerticalEXR(const char* path);
+    static Cubemap *LoadVerticalEXR(const char* path);
+    static void SaveVerticalEXR(const char *path, const Cubemap *cubemap);
     
 private:
     static void LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap);
