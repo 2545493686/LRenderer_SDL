@@ -187,6 +187,7 @@ Texture *uvTex;
 Cubemap *skybox;
 Cubemap *skyboxIrradiance;
 std::vector<Cubemap *> skyboxMipmaps;
+std::vector<Cubemap *> skyboxRadiance;
 Texture *brdfLutTex;
 
 void LoadAssets()
@@ -206,6 +207,15 @@ void LoadAssets()
 	}
 
 	skybox->SetMipmaps(skyboxMipmaps);
+
+	skyboxRadiance.push_back(skybox);
+	for (size_t i = 1; i <= 10; i++)
+	{
+		auto mipmap = CubemapLoader::LoadVerticalEXR(std::format("assets\\skybox_default_radiance_{}.exr", i).c_str());
+		skyboxRadiance.push_back(mipmap);
+	}
+
+	skybox->SetRadianceMaps(skyboxRadiance);
 
 	brdfLutTex = TextureLoader::LoadPNG("assets\\ibl_brdf_lut.png");
 }

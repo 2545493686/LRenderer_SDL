@@ -3,8 +3,44 @@
 
 Eigen::Vector4f Cubemap::SampleByRoughness(const Eigen::Vector3f &direction, float roughness) const
 {
-	auto mipmapsLayer = roughness * roughness * (mipmaps.size() - 1);
-    return Sample(direction, SampleType::Bilinear, mipmapsLayer);
+    const Eigen::Vector3f dir = direction.normalized();
+    Face face;
+    Eigen::Vector2f uv;
+    DetermineFaceAndUV(dir, face, uv);
+
+	auto mipmapsLayer = roughness * roughness * (radianceMaps.size() - 2);
+
+    Eigen::Vector4f colors[2];
+    for (size_t i = 0; i < 2; i++)
+    {
+        int layer = static_cast<int>(mipmapsLayer) + i;
+        auto size = radianceMaps[layer]->size;
+
+        float x = uv.x() * size;
+        float y = uv.y() * size;
+
+        int x0 = static_cast<int>(x);
+        int y0 = static_cast<int>(y);
+
+        x0 = std::clamp(x0, 0, size - 1);
+        y0 = std::clamp(y0, 0, size - 1);
+
+        int x1 = std::clamp(x0 + 1, 0, size - 1);
+        int y1 = std::clamp(y0 + 1, 0, size - 1);
+        
+        float u = x - x0;
+        float v = y - y0;
+        
+        Eigen::Vector4f c00 = radianceMaps[layer]->data[static_cast<int>(face)][y0 * size + x0];
+        Eigen::Vector4f c01 = radianceMaps[layer]->data[static_cast<int>(face)][y0 * size + x1];
+        Eigen::Vector4f c10 = radianceMaps[layer]->data[static_cast<int>(face)][y1 * size + x0];
+        Eigen::Vector4f c11 = radianceMaps[layer]->data[static_cast<int>(face)][y1 * size + x1];
+
+        colors[i] = c00 * (1 - u) * (1 - v) + c01 * u * (1 - v) + c10 * (1 - u) * v + c11 * u * v;
+    }
+
+	return colors[0] * (1 - mipmapsLayer + static_cast<int>(mipmapsLayer)) 
+        + colors[1] * (mipmapsLayer - static_cast<int>(mipmapsLayer));
 }
 
 Eigen::Vector4f Cubemap::Sample(const Eigen::Vector3f& direction, SampleType sampleType, int mipmapsLayer) const
@@ -94,6 +130,11 @@ Eigen::Vector3f Cubemap::GetDirection(Face face, const Eigen::Vector2f &uv) cons
     default:
         throw std::runtime_error("Invalid cubemap face");
     }
+}
+
+Eigen::Vector3f Cubemap::SetRadianceMaps(std::vector<Cubemap *> radianceMaps)
+{
+    this->radianceMaps = radianceMaps;
 }
 
 Eigen::Vector3f Cubemap::SetMipmaps(std::vector<Cubemap *> mipmaps)
