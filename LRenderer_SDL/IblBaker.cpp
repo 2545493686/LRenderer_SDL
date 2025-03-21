@@ -122,8 +122,8 @@ Cubemap *IblBaker::BakeRadiance(Cubemap *input, float roughness, int inverseScal
 					tangentSpace.col(1) = bitangent;
 					tangentSpace.col(2) = dir;
 
-					//int sampleCount = 4096 * 32;
-					int sampleCount = 128;
+					int sampleCount = 4096 * 32 * roughness;
+					//int sampleCount = 128;
 					Eigen::Vector4d color = Eigen::Vector4d::Zero();
 					double normalizeSum = 0;
 					for (size_t k = 0; k < sampleCount; k++)
