@@ -46,17 +46,25 @@ Eigen::Vector4f CookTorranceShader::fragment(const v2f &i)
     diffuse = diffuse.cwiseProduct(albedo);
 
     // pbr 间接光
-    
+
     // 垂直入射反射率
     auto F0 = MathUtils::Lerp(vec4(0.04f), albedo, metallic);
     Eigen::Vector4f F = F0 + (vec4(1) - F0) * std::powf(1 - vDotN, 5);
+	float roughness = 1 - smoothness;
+	Eigen::Vector4f R = MathUtils::Reflect(viewDirection, worldNormal).normalized();
 
     Eigen::Vector4f kd = (vec4(1) - F) * (1 - metallic);
     
     auto indrirectDiffuse = irradianceTex->Sample(worldNormal.head<3>());
     indrirectDiffuse = indrirectDiffuse.cwiseProduct(albedo).cwiseProduct(kd);
 
-    Eigen::Vector4f color = diffuse + indrirectDiffuse;
+    auto indrirectSpecular = radianceTex->SampleByRoughness(R.head<3>(), roughness);
+    
+    auto scaleAndBias = brdfLutTex->Sample(vDotN, 0);
+    indrirectSpecular = indrirectSpecular.cwiseProduct(F0 * scaleAndBias.x() + vec4(scaleAndBias.y()));
+
+    // 综合颜色
+    Eigen::Vector4f color = diffuse + indrirectDiffuse + indrirectSpecular;
     
     return color;
 }

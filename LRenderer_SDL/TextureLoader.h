@@ -18,7 +18,7 @@ public:
 private:
 	static Texture* LoadPNG_BySDL(const char* path)
 	{
-		SDL_Surface* surface = IMG_Load("assets\\texture.png");
+		SDL_Surface* surface = IMG_Load(path);
 		if (!surface) {
 			spdlog::error(IMG_GetError());
 			abort();

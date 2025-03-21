@@ -6,6 +6,8 @@
 #include <ImfOutputFile.h>  // Add this include
 #include <ImfStringAttribute.h>
 
+#include "MathUtils.h"
+
 // deepseek 生成
 void CubemapLoader::SaveVerticalEXR(const char *path, const Cubemap *cubemap)
 {
@@ -148,6 +150,9 @@ void CubemapLoader::LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap)
                     pixelBuffer[4 * srcIndex + 2],
                     pixelBuffer[4 * srcIndex + 3]
                 );
+
+                MathUtils::RemoveNan(faceData[dstIndex], 10);
+                MathUtils::ClampVector4(faceData[dstIndex], 0, 10);
             }
         }
     }

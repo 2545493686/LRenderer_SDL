@@ -14,7 +14,9 @@ public:
 	Texture *tex1;
 	Eigen::Vector4f diffuse = Color::MakeVector(Color::White);
 
+	Cubemap *radianceTex;
 	Cubemap *irradianceTex;
+	Texture *brdfLutTex;
 
 	// Inherited via Shader
 	v2f vertex(const appdata &v) override;

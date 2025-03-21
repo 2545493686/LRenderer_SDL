@@ -35,11 +35,11 @@ public:
         }
     }
 
-    std::vector<Cubemap *> mipmaps;
+    std::vector<Cubemap *> mipmaps = std::vector<Cubemap *>();
     Eigen::Vector4f* data[6] = { nullptr };
     int size = 0;
 
-    Eigen::Vector4f SampleByRoughness(const Eigen::Vector3f &direction, float theta) const;
+    Eigen::Vector4f SampleByRoughness(const Eigen::Vector3f &direction, float roughness) const;
 
     Eigen::Vector4f Sample(const Eigen::Vector3f& direction, SampleType sampleType = SampleType::Direct, int mipmapsLayer = 0) const;
     Eigen::Vector3f GetDirection(Face face, const Eigen::Vector2f& uv) const;

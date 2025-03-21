@@ -25,6 +25,11 @@ static Eigen::Vector4d vec4d(double v)
 class MathUtils
 {
 public:
+	EIGEN_ALWAYS_INLINE static Eigen::Vector4f Reflect(Eigen::Vector4f viewDirection, Eigen::Vector4f worldNormal)
+	{
+		return 2 * viewDirection.dot(worldNormal) * worldNormal - viewDirection;
+	}
+
 	EIGEN_ALWAYS_INLINE static Eigen::Vector4f Pow(Eigen::Vector4f v, float p)
 	{
         return v.array().pow(p);

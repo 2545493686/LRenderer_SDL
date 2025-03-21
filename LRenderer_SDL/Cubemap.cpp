@@ -1,4 +1,5 @@
 ﻿#include "Cubemap.h"
+#include <iostream>
 
 Eigen::Vector4f Cubemap::SampleByRoughness(const Eigen::Vector3f &direction, float roughness) const
 {

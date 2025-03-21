@@ -3,6 +3,7 @@
 #include <format>
 #include <string>
 
+#include "SDL2/SDL_image.h"
 #include "InitShadowMapPass.h"
 #include "MaximizeShadowMapPass.h"
 #include "IblBaker.h"
@@ -165,6 +166,7 @@ Texture *uvTex;
 Cubemap *skybox;
 Cubemap *skyboxIrradiance;
 std::vector<Cubemap *> skyboxMipmaps;
+Texture *brdfLutTex;
 
 void LoadAssets()
 {
@@ -183,6 +185,8 @@ void LoadAssets()
 	}
 
 	skybox->SetMipmaps(skyboxMipmaps);
+
+	brdfLutTex = TextureLoader::LoadPNG("assets\\ibl_brdf_lut.png");
 }
 
 Scene *CreateScene()
@@ -209,6 +213,8 @@ Scene *CreateScene()
 	auto *meshShader = new CookTorranceShader();
 	meshShader->tex1 = uvTex;
 	meshShader->irradianceTex = skyboxIrradiance;
+	meshShader->radianceTex = skybox;
+	meshShader->brdfLutTex = brdfLutTex;
 
 	meshRenderer->shader = meshShader;
 	cube->AddComponent(meshRenderer);
@@ -236,7 +242,12 @@ Scene *CreateScene()
 	auto *sphereShader = new CookTorranceShader();
 	//sphereShader->tex1 = uvTex;
 	sphereShader->irradianceTex = skyboxIrradiance;
-	
+	sphereShader->radianceTex = skybox;
+	sphereShader->brdfLutTex = brdfLutTex;
+	sphereShader->smoothness = 0.1f;
+	sphereShader->metallic = 1.0f;
+	sphereShader->diffuse << 0.24f, 0.17f, 0.12f, 1.0f;
+
 	sphereRenderer->shader = sphereShader;
 	sphere->AddComponent(sphereRenderer);
 #pragma endregion
@@ -265,7 +276,8 @@ Scene *CreateScene()
 	auto *planeShader = new CookTorranceShader();
 	//planeShader->tex1 = uvTex;
 	planeShader->irradianceTex = skyboxIrradiance;
-	//planeShader->diffuse << 0.9, 0.9, 0.9, 1;
+	planeShader->radianceTex = skybox;
+	planeShader->brdfLutTex = brdfLutTex;
 
 	planeRenderer->shader = planeShader;
 	plane->AddComponent(planeRenderer);
