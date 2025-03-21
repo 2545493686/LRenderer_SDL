@@ -9,7 +9,7 @@ class CookTorranceShader : public Shader
 {
 public:
 	float metallic = 0;
-	float smoothness = 0.5f;
+	float smoothness = 0.0f;
 
 	Texture *tex1;
 	Eigen::Vector4f diffuse = Color::MakeVector(Color::White);

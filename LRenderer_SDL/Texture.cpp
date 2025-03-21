@@ -21,7 +21,7 @@ Eigen::Vector4f Texture::Sample(float u, float v)
 {
 	// TODO: 自动msaa或者bilinear
 	// TODO: WrapMode
-	int x = (int)(u * (width - 1));
+	int x = (int)((1 - u) * (width - 1));
 	int y = (int)((1 - v) * (height - 1));
 
 	return GetPixel(x, y);
