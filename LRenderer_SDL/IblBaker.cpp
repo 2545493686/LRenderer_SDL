@@ -36,7 +36,7 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 					tangentSpace.col(1) = bitangent;
 					tangentSpace.col(2) = dir;
 
-					int sampleCount = 4096;
+					int sampleCount = 4096 * 32;
 					Eigen::Vector4d color = Eigen::Vector4d::Zero();
 					int realSampleCount = 0;
 					for (size_t k = 0; k < sampleCount; k++)

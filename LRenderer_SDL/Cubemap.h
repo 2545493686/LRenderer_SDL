@@ -4,7 +4,21 @@
 class Cubemap
 {
 public:
-    enum Face { PosX, NegX, PosY, NegY, PosZ, NegZ };
+    enum class SampleType
+    {
+        Direct,
+        Bilinear
+    };
+
+    enum Face 
+    {
+        PosX, 
+        NegX, 
+        PosY, 
+        NegY, 
+        PosZ, 
+        NegZ 
+    };
 
     explicit Cubemap(int faceSize) : size(faceSize) 
     {
@@ -21,11 +35,18 @@ public:
         }
     }
 
+    std::vector<Cubemap *> mipmaps;
     Eigen::Vector4f* data[6] = { nullptr };
     int size = 0;
 
-    Eigen::Vector4f Sample(const Eigen::Vector3f& direction) const;
+    Eigen::Vector4f SampleByRoughness(const Eigen::Vector3f &direction, float theta) const;
+
+    Eigen::Vector4f Sample(const Eigen::Vector3f& direction, SampleType sampleType = SampleType::Direct, int mipmapsLayer = 0) const;
     Eigen::Vector3f GetDirection(Face face, const Eigen::Vector2f& uv) const;
+    Eigen::Vector3f SetMipmaps(std::vector<Cubemap *> mipmaps);
+
+    Eigen::Vector4f SampleFace(Face face, const Eigen::Vector2f& uv, SampleType sampleType = SampleType::Direct, int mipmapsLayer = 0) const;
+    Eigen::Vector4f SampleFace(Face face, int x, int y, int mipmapsLayer = 0) const;
 
     EIGEN_ALWAYS_INLINE void PutPixel(Face face, int x, int y, const Eigen::Vector4f &color)
     {
@@ -57,9 +78,6 @@ public:
     { 
         return size; 
     }
-
-    Eigen::Vector4f SampleFace(Face face, const Eigen::Vector2f& uv) const;
-    Eigen::Vector4f SampleFace(Face face, int x, int y) const;
 
 private:
     void DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::Vector2f& uv) const;

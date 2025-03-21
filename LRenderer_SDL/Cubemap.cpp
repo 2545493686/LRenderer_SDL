@@ -1,12 +1,18 @@
 ﻿#include "Cubemap.h"
 
-Eigen::Vector4f Cubemap::Sample(const Eigen::Vector3f& direction) const
+Eigen::Vector4f Cubemap::SampleByRoughness(const Eigen::Vector3f &direction, float roughness) const
+{
+	auto mipmapsLayer = roughness * roughness * (mipmaps.size() - 1);
+    return Sample(direction, SampleType::Bilinear, mipmapsLayer);
+}
+
+Eigen::Vector4f Cubemap::Sample(const Eigen::Vector3f& direction, SampleType sampleType, int mipmapsLayer) const
 {
     const Eigen::Vector3f dir = direction.normalized();
     Face face;
     Eigen::Vector2f uv;
     DetermineFaceAndUV(dir, face, uv);
-    return SampleFace(face, uv);
+    return SampleFace(face, uv, sampleType, mipmapsLayer);
 }
 
 // deepseek 生成
@@ -89,6 +95,25 @@ Eigen::Vector3f Cubemap::GetDirection(Face face, const Eigen::Vector2f &uv) cons
     }
 }
 
+Eigen::Vector3f Cubemap::SetMipmaps(std::vector<Cubemap *> mipmaps)
+{
+    int s = this->GetSize();
+    int i = 0;
+    
+    while (s)
+    {
+        i++;
+        s /= 2;
+    }
+
+    if (mipmaps.size() != i)
+    {
+        throw std::runtime_error("Invalid mipmap count.");
+    }
+
+    this->mipmaps = mipmaps;
+}
+
 // deepseek 生成，已修改
 void Cubemap::DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::Vector2f& uv) const
 {
@@ -127,24 +152,52 @@ void Cubemap::DetermineFaceAndUV(const Eigen::Vector3f& dir, Face& face, Eigen::
     }
 }
 
-Eigen::Vector4f Cubemap::SampleFace(Face face, int x, int y) const
+Eigen::Vector4f Cubemap::SampleFace(Face face, int x, int y, int mipmapsLayer) const
 {
-    return data[static_cast<int>(face)][y * size + x];
+    return mipmaps[mipmapsLayer]->data[static_cast<int>(face)][y * size + x];
 }
 
-Eigen::Vector4f Cubemap::SampleFace(Face face, const Eigen::Vector2f & uv) const 
+Eigen::Vector4f Cubemap::SampleFace(Face face, const Eigen::Vector2f & uv, SampleType sampleType, int mipmapsLayer) const
 {
-    float x = uv.x() * size;
-    float y = uv.y() * size;
+    auto size = mipmaps[mipmapsLayer]->size;
+    
+    if (sampleType == SampleType::Direct)
+    {
+        float x = uv.x() * size;
+        float y = uv.y() * size;
 
-    int x0 = static_cast<int>(x);
-    int y0 = static_cast<int>(y);
+        int x0 = static_cast<int>(x);
+        int y0 = static_cast<int>(y);
 
-    x0 = std::max(0, std::min(size - 1, x0));
-    y0 = std::max(0, std::min(size - 1, y0));
+        x0 = std::max(0, std::min(size - 1, x0));
+        y0 = std::max(0, std::min(size - 1, y0));
 
-    Eigen::Vector4f p00 = data[static_cast<int>(face)][y0 * size + x0];
+        return mipmaps[mipmapsLayer]->data[static_cast<int>(face)][y0 * size + x0];
+	}
 
-    return p00;
+	if (sampleType == SampleType::Bilinear)
+	{
+		float x = uv.x() * size;
+		float y = uv.y() * size;
+		
+        int x0 = static_cast<int>(x);
+		int y0 = static_cast<int>(y);
+		
+		x0 = std::clamp(x0, 0, size - 1);
+		y0 = std::clamp(y0, 0, size - 1);
+
+        int x1 = std::clamp(x0 + 1, 0, size - 1);
+		int y1 = std::clamp(y0 + 1, 0, size - 1);
+		float u = x - x0;
+		float v = y - y0;
+		Eigen::Vector4f c00 = mipmaps[mipmapsLayer]->data[static_cast<int>(face)][y0 * size + x0];
+		Eigen::Vector4f c01 = mipmaps[mipmapsLayer]->data[static_cast<int>(face)][y0 * size + x1];
+		Eigen::Vector4f c10 = mipmaps[mipmapsLayer]->data[static_cast<int>(face)][y1 * size + x0];
+		Eigen::Vector4f c11 = mipmaps[mipmapsLayer]->data[static_cast<int>(face)][y1 * size + x1];
+		
+        return c00 * (1 - u) * (1 - v) + c01 * u * (1 - v) + c10 * (1 - u) * v + c11 * u * v;
+    }
+
+	throw std::runtime_error("Invalid sample type.");
 }
 

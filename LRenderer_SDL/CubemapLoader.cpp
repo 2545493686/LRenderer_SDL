@@ -96,6 +96,9 @@ Cubemap* CubemapLoader::LoadVerticalEXR(const char* path)
         auto cubemap = new Cubemap(size);
         LoadDataToCubemap(file, *cubemap);
 
+        cubemap->mipmaps = std::vector<Cubemap *>();
+        cubemap->mipmaps.push_back(cubemap);
+
         return cubemap;
 
     }

@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
 	auto irradiance = IblBaker::BakeIrradiance(skybox);
 
 	std::cout << "Save...\n";
-	CubemapLoader::SaveVerticalEXR("assets\\skybox_default_irradiance.exr", irradiance);
+	CubemapLoader::SaveVerticalEXR("assets\\skybox_default_irradiance_128K.exr", irradiance);
 
 	std::cout << "Success.\n";
 #endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
@@ -164,6 +164,7 @@ Mesh *planeMesh;
 Texture *uvTex;
 Cubemap *skybox;
 Cubemap *skyboxIrradiance;
+std::vector<Cubemap *> skyboxMipmaps;
 
 void LoadAssets()
 {
@@ -172,7 +173,16 @@ void LoadAssets()
 	planeMesh = MeshLoader::Load("assets\\plane.fbx");
 	uvTex = TextureLoader::LoadPNG("assets\\texture.png");
 	skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
-	skyboxIrradiance = CubemapLoader::LoadVerticalEXR("assets\\skybox_default_irradiance_128.exr");
+	skyboxIrradiance = CubemapLoader::LoadVerticalEXR("assets\\skybox_default_irradiance_128K.exr");
+
+	skyboxMipmaps.push_back(skybox);
+	for (size_t i = 1; i <= 11; i++)
+	{
+		auto mipmap = CubemapLoader::LoadVerticalEXR(std::format("assets\\skybox_default_mipmap_{}.exr", i).c_str());
+		skyboxMipmaps.push_back(mipmap);
+	}
+
+	skybox->SetMipmaps(skyboxMipmaps);
 }
 
 Scene *CreateScene()
