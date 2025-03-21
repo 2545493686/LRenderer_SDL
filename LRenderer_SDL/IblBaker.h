@@ -7,5 +7,6 @@ class IblBaker
 
 public:
 	static Cubemap * BakeIrradiance(Cubemap *input);
+	static Cubemap * BakeRadiance(Cubemap *input, float roughness, int inverseScale);
 };
 

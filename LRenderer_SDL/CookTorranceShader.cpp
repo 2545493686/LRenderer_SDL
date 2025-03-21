@@ -27,7 +27,7 @@ float GetGgx(Eigen::Vector4f &halfVector, Eigen::Vector4f &normal, float roughne
 // https://learnopengl-cn.github.io/07%20PBR/03%20IBL/02%20Specular%20IBL/
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
-    float a = roughness;
+    float a = (roughness + 1) / 2;  // 解析光源特殊处理
     float k = (a * a) / 2.0;
 
     float nom = NdotV;

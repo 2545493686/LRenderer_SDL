@@ -135,6 +135,19 @@ public:
 	}
 
 	EIGEN_ALWAYS_INLINE static
+	bool IsNan(const Eigen::Vector3f &v)
+	{
+		for (size_t i = 0; i < 3; i++)
+		{
+			if (std::isnan(v[i]))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	EIGEN_ALWAYS_INLINE static
 	bool IsNan(const Eigen::Vector4f &v)
 	{
 		for (size_t i = 0; i < 4; i++)

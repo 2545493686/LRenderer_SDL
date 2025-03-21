@@ -39,15 +39,19 @@ public:
 	{
 		float max_adjusted = std::nextafter(maxIncludedValue, std::numeric_limits<float>::max());
 		dist = std::uniform_real_distribution<float>(-minIncludedValue, max_adjusted);
+		min = minIncludedValue;
+		max = maxIncludedValue;
 	}
-
+		
 	float Pop() override
 	{
-		return dist(this->engine);
+		return std::clamp(dist(this->engine), min, max);
 	}
 
 private:
 	std::uniform_real_distribution<float> dist;
+	float min;
+	float max;
 };
 
 class CircleRandomProvider : public RandomProvider<Eigen::Vector2f>

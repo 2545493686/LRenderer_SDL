@@ -156,6 +156,27 @@ int main(int argc, char *argv[]) {
 
 #endif // BOOT_MODE == BOOT_MIPMAPS_BAKER
 
+#if BOOT_MODE == BOOT_RADIANCE_BAKER
+
+	std::cout << "Start Radiance Baker.\n";
+
+	auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
+
+	
+	for (size_t i = 1; i <= 10; i++)
+	{
+		std::cout << std::format("Bake Radiances Map {}...\n", i);
+		auto radianceMap = IblBaker::BakeRadiance(skybox, std::min(0.1f * i, 1.0f), pow(2, i));
+		
+		std::cout << std::format("Save Radiance Map {}\n", i);
+		CubemapLoader::SaveVerticalEXR(std::format("assets\\skybox_default_radiance_{}.exr", i).c_str(), radianceMap);
+	}
+
+	std::cout << "Success.\n";
+
+#endif // BOOT_MODE == BOOT_RADIANCE_BAKER
+
+
 	return 0;
 }
 
