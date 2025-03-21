@@ -244,9 +244,9 @@ Scene *CreateScene()
 	sphereShader->irradianceTex = skyboxIrradiance;
 	sphereShader->radianceTex = skybox;
 	sphereShader->brdfLutTex = brdfLutTex;
-	sphereShader->smoothness = 0.1f;
+	sphereShader->smoothness = 0.7f;
 	sphereShader->metallic = 1.0f;
-	sphereShader->diffuse << 0.24f, 0.17f, 0.12f, 1.0f;
+	sphereShader->diffuse << 0.7f, 0.7f, 0.75f, 1.0f;
 
 	sphereRenderer->shader = sphereShader;
 	sphere->AddComponent(sphereRenderer);
