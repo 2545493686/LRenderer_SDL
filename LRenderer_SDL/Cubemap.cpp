@@ -132,12 +132,12 @@ Eigen::Vector3f Cubemap::GetDirection(Face face, const Eigen::Vector2f &uv) cons
     }
 }
 
-Eigen::Vector3f Cubemap::SetRadianceMaps(std::vector<Cubemap *> radianceMaps)
+void Cubemap::SetRadianceMaps(std::vector<Cubemap *> radianceMaps)
 {
     this->radianceMaps = radianceMaps;
 }
 
-Eigen::Vector3f Cubemap::SetMipmaps(std::vector<Cubemap *> mipmaps)
+void Cubemap::SetMipmaps(std::vector<Cubemap *> mipmaps)
 {
     int s = this->GetSize();
     int i = 0;

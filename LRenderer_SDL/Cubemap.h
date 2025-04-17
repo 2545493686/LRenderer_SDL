@@ -44,8 +44,8 @@ public:
 
     Eigen::Vector4f Sample(const Eigen::Vector3f& direction, SampleType sampleType = SampleType::Direct, int mipmapsLayer = 0) const;
     Eigen::Vector3f GetDirection(Face face, const Eigen::Vector2f& uv) const;
-    Eigen::Vector3f SetRadianceMaps(std::vector<Cubemap *> radianceMaps);
-    Eigen::Vector3f SetMipmaps(std::vector<Cubemap *> mipmaps);
+    void SetRadianceMaps(std::vector<Cubemap *> radianceMaps);
+    void SetMipmaps(std::vector<Cubemap *> mipmaps);
 
     Eigen::Vector4f SampleFace(Face face, const Eigen::Vector2f& uv, SampleType sampleType = SampleType::Direct, int mipmapsLayer = 0) const;
     Eigen::Vector4f SampleFace(Face face, int x, int y, int mipmapsLayer = 0) const;
