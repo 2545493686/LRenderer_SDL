@@ -154,11 +154,12 @@ void DirectVisibilityMapPass::fragment(SubpixelData &pixelData)
 	int directVisibility = z <= (standardZ + bias); //高精度采样
 	directVisibility *= directRatio;
 
-	int visibility = 0;
+	double visibility = 0;
 	int visibilityCount = 0;
+	double visibilityK = 0;
 
 	DirectionalLight *directionalLight = static_cast<DirectionalLight *>(light);
-	Eigen::Vector4f sunCenter = -lightDir * (directionalLight->sunDistance / 17);
+	Eigen::Vector4f sunCenter = -lightDir * (directionalLight->sunDistance / 15);
 	sunCenter.w() = 1;
 
 	static auto randomProvider = Random::InRange(0, 1);
@@ -185,14 +186,16 @@ void DirectVisibilityMapPass::fragment(SubpixelData &pixelData)
 
 			rayBias = viewToWorld * rayBias;
 
-			Eigen::Vector4f ray = ((sunCenter + rayBias) - worldPos).normalized();
+			Eigen::Vector4f ray = ((sunCenter + rayBias) - worldPos);
 
 			float rayVisibbility = TestRayVisibility(worldPos, ray.normalized(), bias * 50.0f);
-			visibility += rayVisibbility;
+			float c = std::max(lightDir.dot(-ray), 0.0f) / ray.norm();
+			visibilityK += c;
+			visibility += rayVisibbility * c;
 			visibilityCount++;
 		}
 	}
 
 	directVisibilityMap->putPixel(x, y, 
-		directVisibility + static_cast<float>(visibility) / visibilityCount);
+		directVisibility + static_cast<float>(visibility) / visibilityK);
 }
