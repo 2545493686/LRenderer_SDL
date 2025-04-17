@@ -9,7 +9,8 @@ constexpr auto V2F_TEX_COUNT = 6;
 #define BOOT_IRRADIANCE_BAKER 1
 #define BOOT_MIPMAPS_BAKER 2
 #define BOOT_RADIANCE_BAKER 3
-#define BOOT_MODE BOOT_GAME
+#define BOOT_IMAGE_IMAGEPROCESSING 4
+#define BOOT_MODE BOOT_IMAGE_IMAGEPROCESSING
 
 #define SUBPIXEL_BIAS 1
 #define DEBUG_COUNT 0
@@ -17,5 +18,5 @@ constexpr auto V2F_TEX_COUNT = 6;
 
 class GraphicsSettings
 {
-};
 
+};

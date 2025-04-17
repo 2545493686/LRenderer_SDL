@@ -161,6 +161,7 @@
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="BuiltinShader.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CannyOperator.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="CookTorranceShader.cpp" />
@@ -193,6 +194,7 @@
     <ClCompile Include="SkyboxShader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
+    <ClCompile Include="TextureOperator.cpp" />
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="main.cpp" />
@@ -207,6 +209,7 @@
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="BuiltinShader.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CannyOperator.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="CookTorranceShader.h" />
@@ -239,6 +242,7 @@
     <ClInclude Include="SkyboxShader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLoader.h" />
+    <ClInclude Include="TextureOperator.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="main.h" />

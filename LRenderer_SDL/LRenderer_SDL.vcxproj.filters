@@ -22,6 +22,9 @@
     <Filter Include="Source Files\PostprocessingPass">
       <UniqueIdentifier>{a2c8d564-17fc-4c8b-8a01-c5fc80705d6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\TextureOperator">
+      <UniqueIdentifier>{3dd535d2-dfbe-4f88-9900-26075a0e43c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
@@ -171,6 +174,12 @@
     <ClCompile Include="MipmapBaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TextureOperator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CannyOperator.cpp">
+      <Filter>Source Files\TextureOperator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -303,6 +312,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MipmapBaker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CannyOperator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureOperator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

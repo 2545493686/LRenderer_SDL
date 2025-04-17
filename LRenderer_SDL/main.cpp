@@ -9,6 +9,7 @@
 #include "IblBaker.h"
 #include "CookTorranceShader.h"
 #include "MipmapBaker.h"
+#include "CannyOperator.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -31,7 +32,6 @@ EIGEN_ALWAYS_INLINE Eigen::Vector2f GetSubpixelPointBias(int x, int y, int subpi
 }
 
 int main(int argc, char *argv[]) {
-
 #if BOOT_MODE == BOOT_GAME
 	// 日志系统
 	auto file_logger = spdlog::basic_logger_mt("file_logger", "logs/main_log.txt");
@@ -176,6 +176,85 @@ int main(int argc, char *argv[]) {
 
 #endif // BOOT_MODE == BOOT_RADIANCE_BAKER
 
+
+#if BOOT_MODE == BOOT_IMAGE_IMAGEPROCESSING
+	// 日志系统
+	auto file_logger = spdlog::basic_logger_mt("file_logger", "logs/main_log.txt");
+	spdlog::set_default_logger(file_logger);
+	spdlog::flush_on(spdlog::level::err);
+
+	// 告诉 SDL 我们将自己处理 main 函数
+	SDL_SetMainReady();
+
+	// 初始化 SDL
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		return -1;
+	}
+
+	int imgFlags = IMG_INIT_PNG;
+	int initializedFlags = IMG_Init(imgFlags);
+	if ((initializedFlags & imgFlags) != imgFlags) {
+		spdlog::error("SDL_image 初始化失败: %s", IMG_GetError());
+		SDL_Quit();
+		return -1;
+	}
+
+	SDL_Window *window = SDL_CreateWindow("LRenderer IMAGE_ImageProcessing", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
+	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
+
+	bool running = true;
+	SDL_Event event;
+	
+	auto inputTexture = TextureLoader::LoadPNG("assets\\hough_input.png");
+	auto output = InitFramebuffer(WIDTH, HEIGHT);
+
+	int frameCount = 0;
+
+	while (running) {
+		auto start = std::chrono::high_resolution_clock::now();
+
+		// 事件处理
+		while (SDL_PollEvent(&event)) {
+			if (event.type == SDL_QUIT) {
+				running = false;
+			}
+		}
+
+		DrawImageProcessing(inputTexture, output->colorBuffer);
+
+		// 将帧缓冲绘制到窗口
+		SDL_UpdateTexture(texture, nullptr, output->colorBuffer.data(), WIDTH * sizeof(uint32_t));
+		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+		SDL_RenderPresent(renderer);
+
+		frameCount++;
+		auto end = std::chrono::high_resolution_clock::now();
+
+		// 计算时间差并转换单位
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		Time::deltaTime = duration.count() / 1000.0f;
+		Time::time += Time::deltaTime;
+
+
+#if DEBUG_COUNT
+		if (frameCount == DEBUG_COUNT)
+		{
+			while (1) {}
+		}
+#endif
+
+		std::cout << "frame: " << frameCount << "\n";
+		std::cout << "delta time: " << Time::deltaTime << "\n";
+	}
+
+	// 释放资源
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+#endif
 
 	return 0;
 }
@@ -397,7 +476,23 @@ void ClearFramebuffer(Framebuffer *framebuffer)
 	}
 }
 
-void Draw(DrawContext &context)
+void DrawImageProcessing(Texture *input, Colorbuffer &output)
+{
+	CannyOperator *cannyOperator = new CannyOperator();
+	cannyOperator->Invoke(input);
+	
+	for (int y = 0; y < output.height; ++y) {
+		for (int x = 0; x < output.width; ++x) {
+			float u = static_cast<float>(x) / output.width;
+			float v = static_cast<float>(y) / output.height;
+
+			auto color = input->Sample(u, v);
+			output.putPixel(output.width - x, y, Color::Make(color));
+		}
+	}
+}
+
+void DrawScene(DrawContext &context)
 {
 	Framebuffer *framebuffer = context.framebuffer;
 	Scene *scene = context.scene;
