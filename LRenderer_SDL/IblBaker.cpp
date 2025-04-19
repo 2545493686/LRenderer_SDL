@@ -54,7 +54,7 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 						MathUtils::ClampVector4(sampleColor, 0.0, 10.0);
 
 						color = sampleColor / static_cast<double>(realSampleCount + 1)
-							+ color * static_cast<double>(realSampleCount) / static_cast<double>(realSampleCount + 1);
+							+ color * static_cast<double>(realSampleCount) / static_cast<double>(realSampleCount + 1);  // 已经包含brdf项（1/pi）
 						
 						realSampleCount++;
 						assert(MathUtils::IsNan(color));
