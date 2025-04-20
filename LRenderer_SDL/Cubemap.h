@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Eigen/Dense"
+#include "EnvironmentMap.h"
 
 class Cubemap
 {
@@ -76,7 +77,7 @@ public:
         data[static_cast<int>(face)][y0 * size + x0] = color;
     }
 
-    EIGEN_ALWAYS_INLINE int GetSize() const 
+    EIGEN_ALWAYS_INLINE int GetSize() const
     { 
         return size; 
     }

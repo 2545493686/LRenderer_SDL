@@ -14,7 +14,8 @@ public:
     // x+  x-  y+  y-  z+  z-
     static Cubemap *LoadVerticalEXR(const char* path);
     static void SaveVerticalEXR(const char *path, const Cubemap *cubemap);
-    
+    static void SaveLatitudeLongitudeEXR(const char *path, const Cubemap *cubemap);
+
 private:
     static void LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap);
 };

@@ -9,6 +9,7 @@
 #include "IblBaker.h"
 #include "CookTorranceShader.h"
 #include "MipmapBaker.h"
+#include "LatitudeLongitudeMap.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -125,13 +126,15 @@ int main(int argc, char *argv[]) {
 #if BOOT_MODE == BOOT_IRRADIANCE_BAKER
 	std::cout << "Start Irradiance Baker.\n";
 
-	auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
+	auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_church.exr");
 
 	std::cout << "Bake Irradiance...\n";
-	auto irradiance = IblBaker::BakeIrradiance(skybox);
+	//LatitudeLongitudeMap *output = new LatitudeLongitudeMap(skybox->GetSize() / 4);
+	//EnvironmentMap *output = new EnvironmentMap(input->GetSize() / 4);
+	//auto irradiance = IblBaker::BakeIrradiance(skybox);
 
 	std::cout << "Save...\n";
-	CubemapLoader::SaveVerticalEXR("assets\\skybox_default_irradiance_128K.exr", irradiance);
+	CubemapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll.exr", skybox);
 
 	std::cout << "Success.\n";
 #endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
@@ -196,7 +199,7 @@ void LoadAssets()
 	sphereMesh = MeshLoader::Load("assets\\sphere.fbx");
 	planeMesh = MeshLoader::Load("assets\\plane.fbx");
 	uvTex = TextureLoader::LoadPNG("assets\\texture.png");
-	skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_default.exr");
+	skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_church.exr");
 	skyboxIrradiance = CubemapLoader::LoadVerticalEXR("assets\\skybox_default_irradiance_128K.exr");
 
 	skyboxMipmaps.push_back(skybox);
@@ -410,7 +413,12 @@ void Draw(DrawContext &context)
 	camera->transform->position = Eigen::Vector3f(0, 3, 0);
 
 #if CAMERA_MOVE
-	float moveSpeed = 1.0f;
+	float moveSpeed = 30.0f;
+
+#if CAMERA_AUTO_MOVE
+	camera->transform->Rotate(0, moveSpeed, 0);
+#endif // CAMERA_AUTO_MOVE
+
 	const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
 	// 检测特定按键是否被按下
 	if (keyboard_state[SDL_SCANCODE_UP]) {

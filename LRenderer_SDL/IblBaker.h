@@ -1,5 +1,6 @@
 #pragma once
 class Cubemap;
+class EnvironmentMap;
 
 class IblBaker
 {

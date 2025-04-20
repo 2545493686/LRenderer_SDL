@@ -1,6 +1,9 @@
 ﻿#include "Cubemap.h"
 #include <iostream>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>  // For file sink
+
 Eigen::Vector4f Cubemap::SampleByRoughness(const Eigen::Vector3f &direction, float roughness) const
 {
     const Eigen::Vector3f dir = direction.normalized();
@@ -150,7 +153,8 @@ void Cubemap::SetMipmaps(std::vector<Cubemap *> mipmaps)
 
     if (mipmaps.size() != i)
     {
-        throw std::runtime_error("Invalid mipmap count.");
+        spdlog::error("Invalid mipmap count.");
+        return;
     }
 
     this->mipmaps = mipmaps;

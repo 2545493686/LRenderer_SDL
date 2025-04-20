@@ -1,5 +1,9 @@
 ﻿#include "CubemapLoader.h"
 
+#include <format>
+#include <cmath>
+#include <string>
+
 // deepseek 生成
 #include "CubemapLoader.h"
 #include <ImfChannelList.h> // Add this include
@@ -73,6 +77,91 @@ void CubemapLoader::SaveVerticalEXR(const char *path, const Cubemap *cubemap)
     }
     catch (const std::exception &e) {
         throw std::runtime_error("Failed to save vertical cubemap EXR: " + std::string(e.what()));
+    }
+}
+
+void CubemapLoader::SaveLatitudeLongitudeEXR(const char *path, const Cubemap *cubemap)
+{
+    try {
+        const int size = cubemap->size;
+        const int width = size;  // 纬度经度图的宽高比为2:1
+        const int height = size / 2;
+
+        // 创建EXR文件头
+        Imf::Header header(width, height);
+        Imath::Box2i dataWindow(Imath::V2i(0, 0), Imath::V2i(width - 1, height - 1));
+        header.dataWindow() = dataWindow;
+        header.displayWindow() = dataWindow;
+
+        // 添加RGBA通道（32位浮点）
+        header.channels().insert("R", Imf::Channel(Imf::FLOAT));
+        header.channels().insert("G", Imf::Channel(Imf::FLOAT));
+        header.channels().insert("B", Imf::Channel(Imf::FLOAT));
+        header.channels().insert("A", Imf::Channel(Imf::FLOAT));
+
+        // 创建输出文件
+        Imf::OutputFile file(path, header);
+
+        // 准备像素数据缓冲区
+        std::vector<float> pixelBuffer(width * height * 4);
+
+        // 常量定义
+        const float pi = 3.14159265358979323846f;
+        const float twoPi = 2.0f * pi;
+        const float halfPi = pi / 2.0f;
+
+        // 遍历每个像素生成纬度经度映射
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                // 计算球面坐标（phi经度，theta纬度）
+                const float u = (x + 0.5f) / width;  // 规范化到[0,1)
+                const float v = 1.0f - (y + 0.5f) / height; // 翻转Y轴
+
+                const float phi = u * twoPi + pi / 2;         // 经度 0-2π
+                const float theta = v * pi - halfPi; // 纬度 -π/2到π/2
+
+                // 转换为笛卡尔坐标
+                const float cosTheta = cos(theta);
+                const float sinTheta = sin(theta);
+                const float cosPhi = cos(phi);
+                const float sinPhi = sin(phi);
+
+                // 生成方向向量（右手坐标系，Y-up）
+                Eigen::Vector3f direction(
+                    cosTheta * cosPhi,
+                    sinTheta,
+                    cosTheta * sinPhi
+                );
+
+                // 使用双线性采样获取颜色
+                Eigen::Vector4f color = cubemap->Sample(direction, Cubemap::SampleType::Bilinear);
+
+                // 存储到缓冲区
+                const int idx = (y * width + x) * 4;
+                pixelBuffer[idx + 0] = color[0]; // R
+                pixelBuffer[idx + 1] = color[1]; // G
+                pixelBuffer[idx + 2] = color[2]; // B
+                pixelBuffer[idx + 3] = color[3]; // A
+            }
+        }
+
+        // 配置FrameBuffer
+        Imf::FrameBuffer frameBuffer;
+        char *base = reinterpret_cast<char *>(pixelBuffer.data());
+        const size_t xStride = 4 * sizeof(float);
+        const size_t yStride = width * 4 * sizeof(float);
+
+        frameBuffer.insert("R", Imf::Slice(Imf::FLOAT, base + 0 * sizeof(float), xStride, yStride));
+        frameBuffer.insert("G", Imf::Slice(Imf::FLOAT, base + 1 * sizeof(float), xStride, yStride));
+        frameBuffer.insert("B", Imf::Slice(Imf::FLOAT, base + 2 * sizeof(float), xStride, yStride));
+        frameBuffer.insert("A", Imf::Slice(Imf::FLOAT, base + 3 * sizeof(float), xStride, yStride));
+
+        // 写入文件
+        file.setFrameBuffer(frameBuffer);
+        file.writePixels(height);
+    }
+    catch (const std::exception &e) {
+        throw std::runtime_error("Failed to save latitude longitude EXR: " + std::string(e.what()));
     }
 }
 
@@ -150,6 +239,11 @@ void CubemapLoader::LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap)
                     pixelBuffer[4 * srcIndex + 2],
                     pixelBuffer[4 * srcIndex + 3]
                 );
+
+                if (faceData[dstIndex][3] == 0)
+                {
+                    faceData[dstIndex][3] = 1;
+                }
 
                 MathUtils::RemoveNan(faceData[dstIndex], 10);
                 MathUtils::ClampVector4(faceData[dstIndex], 0, 10);

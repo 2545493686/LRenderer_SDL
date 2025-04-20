@@ -7,6 +7,7 @@
 #include "Cubemap.h"
 #include "Random.h"
 #include "MathUtils.h"
+#include "EnvironmentMap.h"
 
 Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 {
@@ -37,7 +38,7 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 					tangentSpace.col(1) = bitangent;
 					tangentSpace.col(2) = dir;
 
-					int sampleCount = 4096 * 32;
+					int sampleCount = 4096;
 					Eigen::Vector4d color = Eigen::Vector4d::Zero();
 					int realSampleCount = 0;
 					for (size_t k = 0; k < sampleCount; k++)
