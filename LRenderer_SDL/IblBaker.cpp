@@ -7,7 +7,8 @@
 #include "Cubemap.h"
 #include "Random.h"
 #include "MathUtils.h"
-#include "EnvironmentMap.h"
+#include "LatitudeLongitudeMap.h"
+
 
 Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 {
@@ -29,41 +30,52 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 					uv.y() = static_cast<float>(i) / output->GetSize();
 
 					auto dir = output->GetDirection(static_cast<Cubemap::Face>(face), uv);
-					Eigen::Matrix3f tangentSpace;
-					Eigen::Vector3f up = dir + vec3(1);
-					Eigen::Vector3f tangent = dir.cross(up).normalized();
-					Eigen::Vector3f bitangent = dir.cross(tangent).normalized();
 					
-					tangentSpace.col(0) = tangent;
-					tangentSpace.col(1) = bitangent;
-					tangentSpace.col(2) = dir;
-
+					Eigen::Vector4d color;
 					int sampleCount = 4096;
-					Eigen::Vector4d color = Eigen::Vector4d::Zero();
-					int realSampleCount = 0;
-					for (size_t k = 0; k < sampleCount; k++)
+
+					SampleIrradiance(dir, color, sampleCount, randomProvider,  [&input](const Eigen::Vector3f &vec)
 					{
-						auto randomVectorInCircle = randomProvider.Pop();
-						auto z = std::sqrtf(1 - randomVectorInCircle.squaredNorm());
-
-						Eigen::Vector3f sampleVector;
-						sampleVector << randomVectorInCircle, z;
-						sampleVector = sampleVector.normalized();
-						sampleVector = tangentSpace * sampleVector;
-						
-						Eigen::Vector4d sampleColor = input->Sample(sampleVector).cast<double>();
-						MathUtils::ClampVector4(sampleColor, 0.0, 10.0);
-
-						color = sampleColor / static_cast<double>(realSampleCount + 1)
-							+ color * static_cast<double>(realSampleCount) / static_cast<double>(realSampleCount + 1);  // 已经包含brdf项（1/pi）
-						
-						realSampleCount++;
-						assert(MathUtils::IsNan(color));
-					}
-
+						return input->Sample(vec);
+					});
 
 					output->PutPixel(static_cast<Cubemap::Face>(face), j, i, color.cast<float>());
 				}
+			}
+		}
+	}
+
+	return output;
+}
+
+LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input)
+{
+	LatitudeLongitudeMap *output = new LatitudeLongitudeMap(input->width, input->height);
+
+#pragma omp parallel
+	{
+		auto randomProvider = Random::InCircle(0.1f);
+
+#pragma omp for collapse(1) 
+		for (int i = 0; i < output->height; i++)
+		{
+			for (int j = 0; j < output->width; j++)
+			{
+				Eigen::Vector2f uv;
+				uv.x() = static_cast<float>(j) / output->width;
+				uv.y() = static_cast<float>(i) / output->height;
+
+				auto dir = output->GetDirection(uv);
+
+				Eigen::Vector4d color;
+				int sampleCount = 4;
+
+				SampleIrradiance(dir, color, sampleCount, randomProvider, [&input](const Eigen::Vector3f &vec)
+				{
+					return input->Sample(vec);
+				});
+
+				output->PutPixel(j, i, color.cast<float>());
 			}
 		}
 	}

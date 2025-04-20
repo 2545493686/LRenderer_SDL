@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "Eigen/Dense"
-#include "EnvironmentMap.h"
 
 class Cubemap
 {
@@ -26,6 +25,8 @@ public:
         for (int i = 0; i < 6; ++i) {
             data[i] = new Eigen::Vector4f[size * size];
         }
+        mipmaps.push_back(this);
+        radianceMaps.push_back(this);
     }
 
     ~Cubemap() 

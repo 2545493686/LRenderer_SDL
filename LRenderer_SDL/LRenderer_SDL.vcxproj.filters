@@ -171,10 +171,10 @@
     <ClCompile Include="MipmapBaker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EnvironmentMap.cpp">
+    <ClCompile Include="LatitudeLongitudeMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LatitudeLongitudeMap.cpp">
+    <ClCompile Include="LatitudeLongitudeMapLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -311,10 +311,10 @@
     <ClInclude Include="MipmapBaker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EnvironmentMap.h">
+    <ClInclude Include="LatitudeLongitudeMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LatitudeLongitudeMap.h">
+    <ClInclude Include="LatitudeLongitudeMapLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

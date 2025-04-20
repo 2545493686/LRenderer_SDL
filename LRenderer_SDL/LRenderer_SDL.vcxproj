@@ -171,7 +171,6 @@
     <ClCompile Include="DirectVisibilityMapPass.cpp" />
     <ClCompile Include="EnvContext.cpp" />
     <ClCompile Include="EnvContextCreater.cpp" />
-    <ClCompile Include="EnvironmentMap.cpp" />
     <ClCompile Include="Framebuffer.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Graphics.cpp" />
@@ -181,6 +180,7 @@
     <ClCompile Include="IblBaker.cpp" />
     <ClCompile Include="InitShadowMapPass.cpp" />
     <ClCompile Include="LatitudeLongitudeMap.cpp" />
+    <ClCompile Include="LatitudeLongitudeMapLoader.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="MaximizeShadowMapPass.cpp" />
@@ -219,7 +219,6 @@
     <ClInclude Include="DirectVisibilityMapPass.h" />
     <ClInclude Include="EnvContext.h" />
     <ClInclude Include="EnvContextCreater.h" />
-    <ClInclude Include="EnvironmentMap.h" />
     <ClInclude Include="Framebuffer.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Graphics.h" />
@@ -229,6 +228,7 @@
     <ClInclude Include="IblBaker.h" />
     <ClInclude Include="InitShadowMapPass.h" />
     <ClInclude Include="LatitudeLongitudeMap.h" />
+    <ClInclude Include="LatitudeLongitudeMapLoader.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="MaximizeShadowMapPass.h" />

@@ -10,6 +10,7 @@
 #include "CookTorranceShader.h"
 #include "MipmapBaker.h"
 #include "LatitudeLongitudeMap.h"
+#include "LatitudeLongitudeMapLoader.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -126,15 +127,21 @@ int main(int argc, char *argv[]) {
 #if BOOT_MODE == BOOT_IRRADIANCE_BAKER
 	std::cout << "Start Irradiance Baker.\n";
 
-	auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_church.exr");
+	//auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_church.exr");
 
-	std::cout << "Bake Irradiance...\n";
-	//LatitudeLongitudeMap *output = new LatitudeLongitudeMap(skybox->GetSize() / 4);
-	//EnvironmentMap *output = new EnvironmentMap(input->GetSize() / 4);
+	//std::cout << "Bake Irradiance...\n";
 	//auto irradiance = IblBaker::BakeIrradiance(skybox);
 
+	//std::cout << "Save...\n";
+	//CubemapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll.exr", irradiance);
+
+	auto skybox = LatitudeLongitudeMapLoader::LoadLatitudeLongitudeMapEXR("assets\\abandoned_church_1k.exr");
+
+	std::cout << "Bake Irradiance...\n";
+	auto irradiance = IblBaker::BakeIrradiance(skybox);
+
 	std::cout << "Save...\n";
-	CubemapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll.exr", skybox);
+	LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll.exr", irradiance);
 
 	std::cout << "Success.\n";
 #endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
