@@ -34,11 +34,14 @@ EIGEN_ALWAYS_INLINE Eigen::Vector2f GetSubpixelPointBias(int x, int y, int subpi
 
 int main(int argc, char *argv[]) {
 
-#if BOOT_MODE == BOOT_GAME
 	// 日志系统
 	auto file_logger = spdlog::basic_logger_mt("file_logger", "logs/main_log.txt");
 	spdlog::set_default_logger(file_logger);
 	spdlog::flush_on(spdlog::level::err);
+
+	spdlog::info("start.");
+
+#if BOOT_MODE == BOOT_GAME
 
 	// 告诉 SDL 我们将自己处理 main 函数
 	SDL_SetMainReady();
@@ -100,7 +103,6 @@ int main(int argc, char *argv[]) {
 		frameCount++;
 		auto end = std::chrono::high_resolution_clock::now();
 
-		// 计算时间差并转换单位
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 		Time::deltaTime = duration.count() / 1000.0f;
 		Time::time += Time::deltaTime;
@@ -126,24 +128,37 @@ int main(int argc, char *argv[]) {
 
 #if BOOT_MODE == BOOT_IRRADIANCE_BAKER
 	std::cout << "Start Irradiance Baker.\n";
+	auto start = std::chrono::high_resolution_clock::now();
 
+#pragma region Cubemap
 	//auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_church.exr");
 
 	//std::cout << "Bake Irradiance...\n";
-	//auto irradiance = IblBaker::BakeIrradiance(skybox);
+	//auto irradiance = IblBaker::BakeIrradiance(skybox, skybox->GetSize());
 
 	//std::cout << "Save...\n";
-	//CubemapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll.exr", irradiance);
+	//CubemapLoader::SaveVerticalEXR("assets\\skybox_church_cm_dr_from_cm.exr", irradiance);
+#pragma endregion
 
-	auto skybox = LatitudeLongitudeMapLoader::LoadLatitudeLongitudeMapEXR("assets\\abandoned_church_1k.exr");
+#pragma region 经纬图
 
-	std::cout << "Bake Irradiance...\n";
-	auto irradiance = IblBaker::BakeIrradiance(skybox);
+//	auto skybox = LatitudeLongitudeMapLoader::LoadLatitudeLongitudeMapEXR("assets\\abandoned_church_1k.exr");
+//
+//	std::cout << "Bake Irradiance...\n";
+//	auto irradiance = IblBaker::BakeIrradiance(skybox);
+//
+//	std::cout << "Save...\n";
+//	//LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll_from_ll.exr", irradiance);
+//	LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll_from_ll_001.exr", irradiance);
+//#pragma endregion
+//
+//	auto end = std::chrono::high_resolution_clock::now();
+//	auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+//
+//	std::cout << duration << ".\n";
+//
+//	std::cout << "Success.\n";
 
-	std::cout << "Save...\n";
-	LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll.exr", irradiance);
-
-	std::cout << "Success.\n";
 #endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
 
 #if BOOT_MODE == BOOT_MIPMAPS_BAKER

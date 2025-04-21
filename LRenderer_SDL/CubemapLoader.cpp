@@ -245,8 +245,8 @@ void CubemapLoader::LoadDataToCubemap(Imf::InputFile& file, Cubemap& cubemap)
                     faceData[dstIndex][3] = 1;
                 }
 
-                MathUtils::RemoveNan(faceData[dstIndex], 10);
-                MathUtils::ClampVector4(faceData[dstIndex], 0, 10);
+                MathUtils::RemoveNan(faceData[dstIndex], 1000);
+                MathUtils::ClampVector4(faceData[dstIndex], 0, 1000);
             }
         }
     }

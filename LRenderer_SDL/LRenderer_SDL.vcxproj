@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/utf-8 /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /await /Zm800 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\Imath;$(SolutionDir)vcpkg_installed\x64-windows\x64-windows\include\OpenEXR;$(SolutionDir)vcpkg_installed\x64-windows\include\OpenEXR;$(SolutionDir)vcpkg_installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>

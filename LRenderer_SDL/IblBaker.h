@@ -11,7 +11,7 @@ class IblBaker
    IblBaker() = delete;  
 
 public:  
-   static Cubemap * BakeIrradiance(Cubemap *input);  
+   static Cubemap * BakeIrradiance(Cubemap *input, int size);
    static LatitudeLongitudeMap * BakeIrradiance(LatitudeLongitudeMap *input);  
    static Cubemap * BakeRadiance(Cubemap *input, float roughness, int inverseScale);  
 
@@ -21,11 +21,15 @@ private:
    template<typename T> requires std::convertible_to<T, SampleFunc> EIGEN_ALWAYS_INLINE
    static void SampleIrradiance(Eigen::Vector3f &dir, Eigen::Vector4d &outputColor, int sampleCount, CircleRandomProvider &randomProvider, T sampleFunc)
    {
-	   outputColor = sampleFunc(dir).cast<double>();
-	   return;
+	   //outputColor = sampleFunc(dir).cast<double>();
+	   //return;
 
 	   Eigen::Matrix3f tangentSpace;
-	   Eigen::Vector3f up = dir + vec3(1);
+	   Eigen::Vector3f up = Eigen::Vector3f(0, 1, 0);
+	   if ((up - dir).squaredNorm() < 0.01f)
+	   {
+		   up = Eigen::Vector3f(0, -1, 0);
+	   }
 	   Eigen::Vector3f tangent = dir.cross(up).normalized();
 	   Eigen::Vector3f bitangent = dir.cross(tangent).normalized();
 

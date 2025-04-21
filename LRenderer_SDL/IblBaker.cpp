@@ -10,9 +10,9 @@
 #include "LatitudeLongitudeMap.h"
 
 
-Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
+Cubemap *IblBaker::BakeIrradiance(Cubemap *input, int size)
 {
-	Cubemap *output = new Cubemap(input->GetSize() / 4);
+	Cubemap *output = new Cubemap(size);
 	
 	#pragma omp parallel
 	{
@@ -26,13 +26,13 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input)
 				for (int j = 0; j < output->GetSize(); j++)
 				{
 					Eigen::Vector2f uv;
-					uv.x() = static_cast<float>(j) / output->GetSize();
-					uv.y() = static_cast<float>(i) / output->GetSize();
+					uv.x() = (static_cast<float>(j) + 0.5f) / output->GetSize();
+					uv.y() = (static_cast<float>(i) + 0.5f) / output->GetSize();
 
 					auto dir = output->GetDirection(static_cast<Cubemap::Face>(face), uv);
 					
 					Eigen::Vector4d color;
-					int sampleCount = 4096;
+					int sampleCount = 4;
 
 					SampleIrradiance(dir, color, sampleCount, randomProvider,  [&input](const Eigen::Vector3f &vec)
 					{
@@ -54,7 +54,7 @@ LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input)
 
 #pragma omp parallel
 	{
-		auto randomProvider = Random::InCircle(0.1f);
+		auto randomProvider = Random::InCircle(0.01f);
 
 #pragma omp for collapse(1) 
 		for (int i = 0; i < output->height; i++)
@@ -62,8 +62,8 @@ LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input)
 			for (int j = 0; j < output->width; j++)
 			{
 				Eigen::Vector2f uv;
-				uv.x() = static_cast<float>(j) / output->width;
-				uv.y() = static_cast<float>(i) / output->height;
+				uv.x() = (static_cast<float>(j) + 0.5f) / output->width;
+				uv.y() = (static_cast<float>(i) + 0.5f) / output->height;
 
 				auto dir = output->GetDirection(uv);
 
@@ -127,7 +127,11 @@ Cubemap *IblBaker::BakeRadiance(Cubemap *input, float roughness, int inverseScal
 
 					auto dir = output->GetDirection(static_cast<Cubemap::Face>(face), uv);
 					Eigen::Matrix3f tangentSpace;
-					Eigen::Vector3f up = dir + vec3(1);
+					Eigen::Vector3f up = Eigen::Vector3f(0, 1, 0);
+					if ((up - dir).squaredNorm() < 0.01f)
+					{
+						up = Eigen::Vector3f(0, -1, 0);
+					}
 					Eigen::Vector3f tangent = dir.cross(up).normalized();
 					Eigen::Vector3f bitangent = dir.cross(tangent).normalized();
 
@@ -148,7 +152,7 @@ Cubemap *IblBaker::BakeRadiance(Cubemap *input, float roughness, int inverseScal
 						sampleVector = tangentSpace * sampleVector;
 
 						Eigen::Vector4d sampleColor = input->Sample(sampleVector).cast<double>();
-						MathUtils::ClampVector4(sampleColor, 0.0, 10.0);
+						MathUtils::ClampVector4(sampleColor, 0.0, 1000.0);
 
 						float sDotD = std::max(sampleVector.dot(dir), 0.0f);
 						normalizeSum += static_cast<double>(sDotD);

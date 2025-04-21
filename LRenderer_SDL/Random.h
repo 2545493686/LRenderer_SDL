@@ -59,7 +59,7 @@ class CircleRandomProvider : public RandomProvider<Eigen::Vector2f>
 public:
 	CircleRandomProvider(float radius) : radius(radius)
 	{
-		dist = std::uniform_real_distribution<float>(0, radius);
+		dist = std::uniform_real_distribution<float>(0, 1);
 	}
 
 	Eigen::Vector2f Pop() override

@@ -39,6 +39,12 @@ void LatitudeLongitudeMap::DetermineUV(const Eigen::Vector3f &dir, Eigen::Vector
         x *= 1.001f;
         x += 0.50f;
     }
+    if (x > 0.96f)
+    {
+        x -= 0.96;
+        x /= 1.01f;
+        x += 0.96f;
+    }
 
     uv.x() = x;
 
