@@ -54,7 +54,7 @@ LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input)
 
 #pragma omp parallel
 	{
-		auto randomProvider = Random::InCircle(0.01f);
+		auto randomProvider = Random::InCircle(1.0f);
 
 #pragma omp for collapse(1) 
 		for (int i = 0; i < output->height; i++)
@@ -68,7 +68,7 @@ LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input)
 				auto dir = output->GetDirection(uv);
 
 				Eigen::Vector4d color;
-				int sampleCount = 4;
+				int sampleCount = 4096 * 8;
 
 				SampleIrradiance(dir, color, sampleCount, randomProvider, [&input](const Eigen::Vector3f &vec)
 				{

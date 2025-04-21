@@ -2,6 +2,7 @@
 
 #include <format>
 #include <string>
+#include <filesystem>
 
 #include "SDL2/SDL_image.h"
 #include "InitShadowMapPass.h"
@@ -128,7 +129,7 @@ int main(int argc, char *argv[]) {
 
 #if BOOT_MODE == BOOT_IRRADIANCE_BAKER
 	std::cout << "Start Irradiance Baker.\n";
-	auto start = std::chrono::high_resolution_clock::now();
+	omp_set_num_threads(12); // 设置默认线程数
 
 #pragma region Cubemap
 	//auto skybox = CubemapLoader::LoadVerticalEXR("assets\\skybox_church.exr");
@@ -142,22 +143,23 @@ int main(int argc, char *argv[]) {
 
 #pragma region 经纬图
 
-//	auto skybox = LatitudeLongitudeMapLoader::LoadLatitudeLongitudeMapEXR("assets\\abandoned_church_1k.exr");
-//
-//	std::cout << "Bake Irradiance...\n";
-//	auto irradiance = IblBaker::BakeIrradiance(skybox);
-//
-//	std::cout << "Save...\n";
-//	//LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll_from_ll.exr", irradiance);
-//	LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR("assets\\skybox_church_ll_from_ll_001.exr", irradiance);
-//#pragma endregion
-//
-//	auto end = std::chrono::high_resolution_clock::now();
-//	auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-//
-//	std::cout << duration << ".\n";
-//
-//	std::cout << "Success.\n";
+	auto start = std::chrono::high_resolution_clock::now();
+
+	auto skybox = LatitudeLongitudeMapLoader::LoadLatitudeLongitudeMapEXR(argv[1]);
+
+	std::cout << "Bake Irradiance...\n";
+	auto irradiance = IblBaker::BakeIrradiance(skybox);
+
+	std::cout << "Save...\n";
+	LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR(argv[2], irradiance);
+
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+
+	std::cout << duration << ".\n";
+#pragma endregion
+
+	std::cout << "Success.\n";
 
 #endif // BOOT_MODE == BOOT_IRRADIANCE_BAKER
 
