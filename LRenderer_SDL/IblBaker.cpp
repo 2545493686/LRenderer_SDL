@@ -48,7 +48,7 @@ Cubemap *IblBaker::BakeIrradiance(Cubemap *input, int size)
 	return output;
 }
 
-LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input)
+LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input, int sampleCount)
 {
 	LatitudeLongitudeMap *output = new LatitudeLongitudeMap(input->width, input->height);
 
@@ -68,7 +68,6 @@ LatitudeLongitudeMap *IblBaker::BakeIrradiance(LatitudeLongitudeMap *input)
 				auto dir = output->GetDirection(uv);
 
 				Eigen::Vector4d color;
-				int sampleCount = 4096 * 8;
 
 				SampleIrradiance(dir, color, sampleCount, randomProvider, [&input](const Eigen::Vector3f &vec)
 				{

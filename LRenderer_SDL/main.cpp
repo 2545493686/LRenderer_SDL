@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 	auto skybox = LatitudeLongitudeMapLoader::LoadLatitudeLongitudeMapEXR(argv[1]);
 
 	std::cout << "Bake Irradiance...\n";
-	auto irradiance = IblBaker::BakeIrradiance(skybox);
+	auto irradiance = IblBaker::BakeIrradiance(skybox, std::stoi(argv[3]));
 
 	std::cout << "Save...\n";
 	LatitudeLongitudeMapLoader::SaveLatitudeLongitudeEXR(argv[2], irradiance);

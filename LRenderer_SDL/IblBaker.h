@@ -12,7 +12,7 @@ class IblBaker
 
 public:  
    static Cubemap * BakeIrradiance(Cubemap *input, int size);
-   static LatitudeLongitudeMap * BakeIrradiance(LatitudeLongitudeMap *input);  
+   static LatitudeLongitudeMap * BakeIrradiance(LatitudeLongitudeMap *input, int sampleCount = 16384);
    static Cubemap * BakeRadiance(Cubemap *input, float roughness, int inverseScale);  
 
 private:  
