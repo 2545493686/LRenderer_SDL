@@ -9,6 +9,6 @@ public:
 	void Invoke(Texture *tex) override;
 
 private:
-	Eigen::MatrixXf GetGaussianKernel(float sigma);
+	std::pair<Eigen::MatrixXf, Eigen::MatrixXf> GetGaussianDerivativeKernel(float sigma);
 };
 

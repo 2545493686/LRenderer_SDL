@@ -481,6 +481,7 @@ void DrawImageProcessing(Texture *input, Colorbuffer &output)
 	CannyOperator *cannyOperator = new CannyOperator();
 	cannyOperator->Invoke(input);
 	
+
 	for (int y = 0; y < output.height; ++y) {
 		for (int x = 0; x < output.width; ++x) {
 			float u = static_cast<float>(x) / output.width;
