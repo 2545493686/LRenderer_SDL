@@ -6,9 +6,11 @@
 
 void CannyOperator::Invoke(Texture *tex)
 {
-
+	auto [gaussianDerivativeX, gaussianDerivativeY] = GetGaussianDerivativeKernel(1);
+	
 }
 
+EIGEN_ALWAYS_INLINE
 std::pair<Eigen::MatrixXf, Eigen::MatrixXf>  CannyOperator::GetGaussianDerivativeKernel(float sigma)
 {
 	int size = 4 * sigma + 1;

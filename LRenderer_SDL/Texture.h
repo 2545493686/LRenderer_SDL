@@ -37,5 +37,7 @@ public:
 	// 使用 uv 坐标，自动msaa或者bilinear
 	// LANQ 25.2.7
 	Eigen::Vector4f Sample(float x, float y);
+	
+	void Filter();
 };
 
