@@ -26,3 +26,37 @@ Eigen::Vector4f Texture::Sample(float u, float v)
 
 	return GetPixel(x, y);
 }
+
+Texture * Texture::Filter(Eigen::MatrixXf kernel)
+{
+	Texture *tex = new Texture(width, height);
+
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			Eigen::Vector4f sum = Eigen::Vector4f::Zero();
+
+			for (int kernelY = 0; kernelY < kernel.rows(); kernelY++)
+			{
+				for (int kernelX = 0; kernelX < kernel.cols(); kernelX++)
+				{
+					int biasX = kernelX - kernel.cols() / 2;
+					int biasY = kernelY - kernel.rows() / 2;
+
+					int valueX = std::abs(x + biasX);
+					int valueY = std::abs(y + biasY);
+
+					valueX = (width - 1) - std::abs((width - 1) - valueX);
+					valueY = (height - 1) - std::abs((height - 1) - valueY);
+
+					sum += kernel(kernelY, kernelX) * data[valueY * width + valueX];
+				}
+			}
+
+			tex->data[y * width + x] = sum;
+		}
+	}
+
+	return tex;
+}

@@ -38,6 +38,6 @@ public:
 	// LANQ 25.2.7
 	Eigen::Vector4f Sample(float x, float y);
 	
-	void Filter();
+	Texture * Filter(Eigen::MatrixXf kernel);
 };
 

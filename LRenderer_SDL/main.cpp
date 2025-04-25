@@ -221,7 +221,10 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		DrawImageProcessing(inputTexture, output->colorBuffer);
+		if (!frameCount)
+		{
+			DrawImageProcessing(inputTexture, output->colorBuffer);
+		}
 
 		// 将帧缓冲绘制到窗口
 		SDL_UpdateTexture(texture, nullptr, output->colorBuffer.data(), WIDTH * sizeof(uint32_t));
@@ -236,7 +239,6 @@ int main(int argc, char *argv[]) {
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 		Time::deltaTime = duration.count() / 1000.0f;
 		Time::time += Time::deltaTime;
-
 
 #if DEBUG_COUNT
 		if (frameCount == DEBUG_COUNT)
