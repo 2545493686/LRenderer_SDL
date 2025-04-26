@@ -4,11 +4,13 @@
 
 
 class Texture {
+public:
 	enum WrapMode
 	{
 		WrapNone,
 		WrapClamp,
 		WrapRepeat,
+		WrapPingPong
 	};
 
 	enum FilterMode
@@ -17,8 +19,6 @@ class Texture {
 		FilterLinear,
 	};
 
-public:
-	WrapMode wrapMode = Texture::WrapMode::WrapRepeat;
 	Eigen::Vector4f* data;
 	int width;
 	int height;
@@ -36,8 +36,27 @@ public:
 	
 	// 使用 uv 坐标，自动msaa或者bilinear
 	// LANQ 25.2.7
-	Eigen::Vector4f Sample(float x, float y);
+	Eigen::Vector4f Sample(float x, float y, FilterMode filterMode = FilterMode::FilterNone, WrapMode wrapMode = WrapMode::WrapClamp);
 	
+	Texture * Copy();
+
 	Texture * Filter(Eigen::MatrixXf kernel);
+
+	EIGEN_ALWAYS_INLINE
+	Eigen::Vector4f &ReferDirect(int x, int y) {
+		return data[y * width + x];
+	}
+
+	EIGEN_ALWAYS_INLINE
+	void Each(std::function<void(int x, int y, Eigen::Vector4f &value)> lambda)
+	{
+		for (int y = 0; y < this->height; y++)
+		{
+			for (int x = 0; x < this->width; x++)
+			{
+				lambda(x, y, ReferDirect(x, y));
+			}
+		}
+	}
 };
 
