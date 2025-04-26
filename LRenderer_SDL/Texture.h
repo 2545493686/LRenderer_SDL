@@ -34,9 +34,12 @@ public:
 	// 使用实际坐标
 	Eigen::Vector4f GetPixel(int x, int y);
 	
+	// 转换坐标
+	void LegalizationCoordinates(int &x, int &y, WrapMode wrapMode = WrapMode::WrapClamp);
+
 	// 使用 uv 坐标，自动msaa或者bilinear
 	// LANQ 25.2.7
-	Eigen::Vector4f Sample(float x, float y, FilterMode filterMode = FilterMode::FilterNone, WrapMode wrapMode = WrapMode::WrapClamp);
+	Eigen::Vector4f Sample(float u, float v, FilterMode filterMode = FilterMode::FilterNone, WrapMode wrapMode = WrapMode::WrapClamp);
 	
 	Texture * Copy();
 
@@ -45,6 +48,18 @@ public:
 	EIGEN_ALWAYS_INLINE
 	Eigen::Vector4f &ReferDirect(int x, int y) {
 		return data[y * width + x];
+	}
+
+	EIGEN_ALWAYS_INLINE
+	void Each(std::function<void(int x, int y)> lambda)
+	{
+		for (int y = 0; y < this->height; y++)
+		{
+			for (int x = 0; x < this->width; x++)
+			{
+				lambda(x, y);
+			}
+		}
 	}
 
 	EIGEN_ALWAYS_INLINE

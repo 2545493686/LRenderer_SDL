@@ -2,6 +2,7 @@
 
 #include "CannyOperator.h"
 
+#include <stack>
 #include <cmath>
 
 void CannyOperator::Invoke(Texture *tex)
@@ -18,7 +19,7 @@ void CannyOperator::Invoke(Texture *tex)
 	auto dx = tex->Filter(gaussianDerivativeX);
 	auto dy = tex->Filter(gaussianDerivativeY);
 
-	tex->Each([&dx, &dy](int x, int y, Eigen::Vector4f &value) 
+	tex->Each([&dx, &dy](int x, int y, Eigen::Vector4f &value)
 	{
 		auto vx = dx->ReferDirect(x, y).x();
 		auto vy = dy->ReferDirect(x, y).x();
@@ -47,7 +48,65 @@ void CannyOperator::Invoke(Texture *tex)
 		v = (temp->height - y - gradient.y()) / temp->height;
 		auto v2 = temp->Sample(u, v, Texture::FilterLinear, Texture::WrapPingPong);
 
-		value = (value.x() >= v1.x() && value.x() >= v2.x()) ? value : Eigen::Vector4f::Zero();
+		value = (value.x() > v1.x() && value.x() > v2.x()) ? value : Eigen::Vector4f::Zero();
+	});
+
+	// 双门限
+	Eigen::MatrixXi hignThreshold(tex->width, tex->height);
+	Eigen::MatrixXi lowThreshold(tex->width, tex->height);
+
+	float maxVal = tex->ReferDirect(0, 0).x();
+	tex->Each([&maxVal](int x, int y, Eigen::Vector4f &value) {
+		maxVal = std::max(maxVal, value.x());
+	});
+
+	tex->Each([&hignThreshold, &lowThreshold, &maxVal](int x, int y, Eigen::Vector4f &value)
+	{
+		float v = value.x();
+		hignThreshold(x, y) = v > (maxVal * 0.3f);
+		lowThreshold(x, y) = v > (maxVal * 0.1f);
+	});
+	
+	// 连接边
+	auto visitStack = std::stack<std::pair<int, int>>();
+
+	tex->Each([&hignThreshold, &lowThreshold, &visitStack, &tex, &dx, &dy](int texX, int texY)
+	{
+		if (hignThreshold(texX, texY))
+		{
+			visitStack.push(std::make_pair(texX, texY));
+		}
+
+		while (!visitStack.empty())
+		{
+			auto [x, y] = visitStack.top();
+			visitStack.pop();
+			
+			auto vdx = dx->ReferDirect(x, y).x();
+			auto vdy = dy->ReferDirect(x, y).x();
+
+			for (int i = -1; i <= 1; i++)
+			{
+				for (int j = -1; j <= 1; j++)
+				{
+					int sx = x + i;
+					int sy = y + j;
+
+					tex->LegalizationCoordinates(sx, sy, Texture::WrapPingPong);
+					
+					if (lowThreshold(sx, sy) && !hignThreshold(sx, sy))
+					{
+						hignThreshold(sx, sy) = 1;
+						visitStack.push(std::make_pair(sx, sy));
+					}
+				}
+			}
+		}
+	});
+
+	tex->Each([&hignThreshold, &lowThreshold](int x, int y, Eigen::Vector4f &value)
+	{
+		value = Eigen::Vector4f::Ones() * hignThreshold(x, y);
 	});
 
 	delete dx;

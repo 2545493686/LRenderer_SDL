@@ -18,48 +18,55 @@ Eigen::Vector4f Texture::GetPixel(int x, int y)
 }
 
 // gpt o4 mini high 编写
-// 使用 uv 坐标，自动msaa或者bilinear
-Eigen::Vector4f Texture::Sample(float x, float y, FilterMode filterMode, WrapMode wrapMode) {
-    // 纹理坐标包裹处理
+void Texture::LegalizationCoordinates(int &x, int &y, WrapMode wrapMode)
+{
+    // 处理 x 和 y 像素坐标包裹逻辑
     switch (wrapMode) {
     case WrapMode::WrapNone:
-        if (x < 0.0f || x >= 1.0f || y < 0.0f || y >= 1.0f)
-            return Eigen::Vector4f::Zero(); // 如果坐标超出范围，返回零
+        // 如果坐标超出范围，返回零
+        if (x < 0 || x >= width || y < 0 || y >= height) {
+            x = y = 0;  // 超出范围，设置为零
+        }
         break;
 
     case WrapMode::WrapClamp:
         // 对超出范围的坐标进行限制
-        x = std::clamp(x, 0.0f, 1.0f);
-        y = std::clamp(y, 0.0f, 1.0f);
+        x = std::clamp(x, 0, width - 1);
+        y = std::clamp(y, 0, height - 1);
         break;
 
     case WrapMode::WrapRepeat:
         // 对超出范围的坐标进行重复包裹
-        x = x - std::floor(x);
-        y = y - std::floor(y);
+        x = x - std::floor(x / (float)width) * width;
+        y = y - std::floor(y / (float)height) * height;
         break;
 
     case WrapMode::WrapPingPong:
         // 对超出范围的坐标进行反弹（ping-pong）
-        if (x < 0.0f) {
+        if (x < 0) {
             x = -x;  // 反弹回去
         }
-        else if (x >= 1.0f) {
-            x = 2.0f - x;  // 反弹回去
+        else if (x >= width) {
+            x = 2 * width - x - 1;  // 反弹回去
         }
 
-        if (y < 0.0f) {
+        if (y < 0) {
             y = -y;  // 反弹回去
         }
-        else if (y >= 1.0f) {
-            y = 2.0f - y;  // 反弹回去
+        else if (y >= height) {
+            y = 2 * height - y - 1;  // 反弹回去
         }
         break;
     }
+}
 
+// gpt o4 mini high 编写
+// 使用 uv 坐标，自动msaa或者bilinear
+Eigen::Vector4f Texture::Sample(float u, float v, FilterMode filterMode, WrapMode wrapMode) {
     // 转换为像素坐标
-    int ix = (int)((1 - x) * (width - 1));
-    int iy = (int)((1 - y) * (height - 1));
+    int ix = (int)((1 - u) * (width - 1));
+    int iy = (int)((1 - v) * (height - 1));
+    LegalizationCoordinates(ix, iy, wrapMode);
 
     switch (filterMode) {
     case FilterMode::FilterNone:
@@ -67,8 +74,8 @@ Eigen::Vector4f Texture::Sample(float x, float y, FilterMode filterMode, WrapMod
 
     case FilterMode::FilterLinear: {
         // 双线性插值
-        float fx = (1 - x) * (width - 1) - ix;  // 计算u方向的小数部分
-        float fy = (1 - y) * (height - 1) - iy; // 计算v方向的小数部分
+        float fx = (1 - u) * (width - 1) - ix;  // 计算u方向的小数部分
+        float fy = (1 - v) * (height - 1) - iy; // 计算v方向的小数部分
 
         // 获取四个邻域像素的颜色
         Eigen::Vector4f c00 = GetPixel(ix, iy);  // 左上角
