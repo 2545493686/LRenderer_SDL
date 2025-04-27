@@ -5,10 +5,11 @@
 class CannyOperator : public TextureOperator
 {
 public:
+	// input
+	Texture *dx;
+	Texture *dy;
+
 	// Inherited via TextureOperator
 	void Invoke(Texture *tex) override;
-
-private:
-	std::pair<Eigen::MatrixXf, Eigen::MatrixXf> GetGaussianDerivativeKernel(float sigma);
 };
 

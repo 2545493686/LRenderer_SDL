@@ -7,25 +7,8 @@
 
 void CannyOperator::Invoke(Texture *tex)
 {
-	auto [gaussianDerivativeX, gaussianDerivativeY] = GetGaussianDerivativeKernel(1);
-
-	// 灰度化
-	tex->Each([](int x, int y, Eigen::Vector4f &value) 
-	{
-		value = Eigen::Vector4f::Ones() * (value.x() * 0.299f + value.y() * 0.587f + value.z() * 0.114f);
-	});
-
-	// 高斯导数核滤波
-	auto dx = tex->Filter(gaussianDerivativeX);
-	auto dy = tex->Filter(gaussianDerivativeY);
-
-	tex->Each([&dx, &dy](int x, int y, Eigen::Vector4f &value)
-	{
-		auto vx = dx->ReferDirect(x, y).x();
-		auto vy = dy->ReferDirect(x, y).x();
-
-		value = Eigen::Vector4f::Ones() * std::sqrtf(vx * vx + vy * vy);
-	});
+	auto dx = this->dx;
+	auto dy = this->dy;
 
 	// 非最大值抑制
 	Eigen::MatrixXf ordinary(1, 1);
@@ -52,7 +35,7 @@ void CannyOperator::Invoke(Texture *tex)
 	});
 
 	// 双门限
-	Eigen::MatrixXi hignThreshold(tex->width, tex->height);
+	Eigen::MatrixXi highThreshold(tex->width, tex->height);
 	Eigen::MatrixXi lowThreshold(tex->width, tex->height);
 
 	float maxVal = tex->ReferDirect(0, 0).x();
@@ -60,19 +43,19 @@ void CannyOperator::Invoke(Texture *tex)
 		maxVal = std::max(maxVal, value.x());
 	});
 
-	tex->Each([&hignThreshold, &lowThreshold, &maxVal](int x, int y, Eigen::Vector4f &value)
+	tex->Each([&highThreshold, &lowThreshold, &maxVal](int x, int y, Eigen::Vector4f &value)
 	{
 		float v = value.x();
-		hignThreshold(x, y) = v > (maxVal * 0.3f);
+		highThreshold(x, y) = v > (maxVal * 0.3f);
 		lowThreshold(x, y) = v > (maxVal * 0.1f);
 	});
 	
 	// 连接边
 	auto visitStack = std::stack<std::pair<int, int>>();
 
-	tex->Each([&hignThreshold, &lowThreshold, &visitStack, &tex, &dx, &dy](int texX, int texY)
+	tex->Each([&highThreshold, &lowThreshold, &visitStack, &tex, &dx, &dy](int texX, int texY)
 	{
-		if (hignThreshold(texX, texY))
+		if (highThreshold(texX, texY))
 		{
 			visitStack.push(std::make_pair(texX, texY));
 		}
@@ -94,9 +77,9 @@ void CannyOperator::Invoke(Texture *tex)
 
 					tex->LegalizationCoordinates(sx, sy, Texture::WrapPingPong);
 					
-					if (lowThreshold(sx, sy) && !hignThreshold(sx, sy))
+					if (lowThreshold(sx, sy) && !highThreshold(sx, sy))
 					{
-						hignThreshold(sx, sy) = 1;
+						highThreshold(sx, sy) = 1;
 						visitStack.push(std::make_pair(sx, sy));
 					}
 				}
@@ -104,38 +87,10 @@ void CannyOperator::Invoke(Texture *tex)
 		}
 	});
 
-	tex->Each([&hignThreshold, &lowThreshold](int x, int y, Eigen::Vector4f &value)
+	tex->Each([&highThreshold, &lowThreshold](int x, int y, Eigen::Vector4f &value)
 	{
-		value = Eigen::Vector4f::Ones() * hignThreshold(x, y);
+		value = Eigen::Vector4f::Ones() * highThreshold(x, y);
 	});
 
-	delete dx;
-	delete dy;
 	delete temp;
-}
-
-EIGEN_ALWAYS_INLINE
-std::pair<Eigen::MatrixXf, Eigen::MatrixXf>  CannyOperator::GetGaussianDerivativeKernel(float sigma)
-{
-	int size = 4 * sigma + 1;
-
-	Eigen::MatrixXf kernelX(size, size);
-	Eigen::MatrixXf kernelY(size, size);
-
-	for (int x = 0; x < size; x++)
-	{
-		for (int y = 0; y < size; y++)
-		{
-			int xPos = x - size / 2;
-			int yPos = y - size / 2;
-
-			float gX = (-xPos / (2 * M_PI * std::powf(sigma, 4))) * exp(-(xPos * xPos + yPos * yPos) / (2 * sigma * sigma));
-			float gY = (-yPos / (2 * M_PI * std::powf(sigma, 4))) * exp(-(xPos * xPos + yPos * yPos) / (2 * sigma * sigma));
-			
-			kernelX(x, y) = gX;
-			kernelY(x, y) = gY;
-		}
-	}
-	
-	return std::make_pair(kernelX, kernelY);
 }

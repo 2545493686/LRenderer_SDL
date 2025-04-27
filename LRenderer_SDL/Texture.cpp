@@ -47,14 +47,14 @@ void Texture::LegalizationCoordinates(int &x, int &y, WrapMode wrapMode)
             x = -x;  // 反弹回去
         }
         else if (x >= width) {
-            x = 2 * width - x - 1;  // 反弹回去
+            x = (width - 1) - (x - (width - 1));  // 反弹回去
         }
 
         if (y < 0) {
             y = -y;  // 反弹回去
         }
         else if (y >= height) {
-            y = 2 * height - y - 1;  // 反弹回去
+            y = (height - 1) - (y - (height - 1));  // 反弹回去
         }
         break;
     }

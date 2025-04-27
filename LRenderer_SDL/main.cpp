@@ -10,6 +10,11 @@
 #include "CookTorranceShader.h"
 #include "MipmapBaker.h"
 #include "CannyOperator.h"
+#include "GaussianDerivativeOperator.h"
+#include "GrayscaleOperator.h"
+#include "HoughOperator.h"
+#include "DerivativeOperator.h"
+#include "SobelOperator.h"
 
 // 窗口宽高
 const int WIDTH = 800;
@@ -480,16 +485,47 @@ void ClearFramebuffer(Framebuffer *framebuffer)
 
 void DrawImageProcessing(Texture *input, Colorbuffer &output)
 {
-	CannyOperator *cannyOperator = new CannyOperator();
-	cannyOperator->Invoke(input);
+	Texture *origin = input->Copy();
+
+	GrayscaleOperator grayscaleOperator;
+	grayscaleOperator.Invoke(input);
+
+	GaussianDerivativeOperator gaussianDerivativeOperator;
+	gaussianDerivativeOperator.Invoke(input);
+
+	auto dx = gaussianDerivativeOperator.dx;
+	auto dy = gaussianDerivativeOperator.dy;
+
+	CannyOperator cannyOperator;
+	cannyOperator.dx = dx;
+	cannyOperator.dy = dy;
+	cannyOperator.Invoke(input);
 	
+	Texture *temp = input->Copy();
+	SobelOperator derivativeOperator;
+	derivativeOperator.Invoke(temp);
+
+	dx = derivativeOperator.dx;
+	dy = derivativeOperator.dy;
+	//dx = gaussianDerivativeOperator.dx;
+	//dy = gaussianDerivativeOperator.dy;
+
+	HoughOperator houghOperator;
+	houghOperator.dx = dx;
+	houghOperator.dy = dy;
+	houghOperator.Invoke(input);
+
+	origin->Each([&houghOperator](int x, int y, Eigen::Vector4f &value)
+	{
+		value += houghOperator.circlePad->ReferDirect(x, y);
+	});
 
 	for (int y = 0; y < output.height; ++y) {
 		for (int x = 0; x < output.width; ++x) {
 			float u = static_cast<float>(x) / output.width;
 			float v = static_cast<float>(y) / output.height;
 
-			auto color = input->Sample(u, v);
+			auto color = origin->Sample(u, v);
 			output.putPixel(output.width - x, y, Color::Make(color));
 		}
 	}
